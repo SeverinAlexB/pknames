@@ -17,7 +17,7 @@ pub enum WotNodeType {
 impl WotNodeType {
     pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
         match self {
-            WotNodeType::WotClass { name } => {
+            WotNodeType::WotClass { name: _ } => {
                 None
             },
             WotNodeType::WotFollowNode {follows} => {
@@ -34,7 +34,6 @@ impl WotNodeType {
 pub struct WotNode {
     pub pubkey: String,
     pub typ: WotNodeType
-    
 }
 
 impl WotNode {
@@ -45,13 +44,45 @@ impl WotNode {
     }
 }
 
-
-
-
 // Follow
 #[derive(Debug, Clone)]
 pub struct WotFollow {
     pub target_pubkey: String,
     pub source_pubkey: String,
     pub weight: f32
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::{WotNode, WotNodeType};
+
+    #[test]
+    fn sort_node_vec() {
+        let mut list = vec![
+            WotNode {
+                pubkey: "c".to_string(),
+                typ: WotNodeType::WotFollowNode { follows: vec![] }
+            },
+            WotNode {
+                pubkey: "b".to_string(),
+                typ: WotNodeType::WotFollowNode { follows: vec![] }
+            },
+            WotNode {
+                pubkey: "a".to_string(),
+                typ: WotNodeType::WotFollowNode { follows: vec![] }
+            },
+            WotNode {
+                pubkey: "d".to_string(),
+                typ: WotNodeType::WotFollowNode { follows: vec![] }
+            },
+        ];
+
+        list.sort_unstable_by_key(|node| node.pubkey.clone());
+
+        assert_eq!(list[0].pubkey, "a");
+        assert_eq!(list[1].pubkey, "b");
+        assert_eq!(list[2].pubkey, "c");
+        assert_eq!(list[3].pubkey, "d");
+    }
 }
