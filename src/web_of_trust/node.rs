@@ -1,57 +1,57 @@
 
-
-pub trait WotNodeTrait {
-    fn get_pubkey(&self) -> &str;
-}
-
-impl std::fmt::Debug for dyn WotNodeTrait {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Node {}", self.get_pubkey())
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub enum WotNodeType {
+    WotFollowNode {
+        follows: Vec<WotFollow>
+    },
+    WotClass {
+        name: String
+    },
+    
+    WotTempNode {
+        follows: Vec<WotFollow>
     }
 }
 
-// Follow
-#[derive(Debug)]
-pub struct WotFollow {
-    pub target_pubkey: String,
-    pub source_pubkey: String,
-    pub weight: f32
+impl WotNodeType {
+    pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
+        match self {
+            WotNodeType::WotClass { name } => {
+                None
+            },
+            WotNodeType::WotFollowNode {follows} => {
+                Some(follows)
+            },
+            WotNodeType::WotTempNode { follows } => {
+                Some(follows)
+            }
+        }
+    }
 }
 
-
-// Node
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WotNode {
     pub pubkey: String,
-    pub follows: Vec<WotFollow>
+    pub typ: WotNodeType
+    
 }
 
 impl WotNode {
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
-        let found = self.follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
+        let follows = self.typ.get_follows()?;
+        let found = follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
         found
     }
 }
 
-impl WotNodeTrait for WotNode {
-    fn get_pubkey(&self) -> &str {
-        &self.pubkey
-    }
-}
 
-// Temp node
-#[derive(Debug)]
-pub struct WotTempNode(WotNode);
 
-// Class
-#[derive(Debug)]
-pub struct WotClass {
-    pub pubkey: String,
-    pub name: Option<String>,
-}
 
-impl WotNodeTrait for WotClass {
-    fn get_pubkey(&self) -> &str {
-        &self.pubkey
-    }
+// Follow
+#[derive(Debug, Clone)]
+pub struct WotFollow {
+    pub target_pubkey: String,
+    pub source_pubkey: String,
+    pub weight: f32
 }
