@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "fancydns"
+name = "fancydns-rust"
 version = "0.1.0"

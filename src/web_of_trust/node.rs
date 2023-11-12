@@ -42,6 +42,16 @@ impl WotNode {
         let found = follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
         found
     }
+
+    pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
+        self.typ.get_follows()
+    }
+}
+
+impl PartialEq for WotNode {
+    fn eq(&self, other: &Self) -> bool {
+        self.pubkey == other.pubkey
+    }
 }
 
 // Follow
