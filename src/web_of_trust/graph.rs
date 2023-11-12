@@ -11,9 +11,9 @@ impl WotGraph {
     pub fn new(mut nodes: Vec<WotNode>) -> Result<Self, &'static str> {
         nodes.sort_unstable_by_key(|node| node.pubkey.clone());
         let graph = WotGraph { nodes };
-        
+
         if !graph.is_unique() {
-            return Err("Given node list with pubkeys, pubkeys are not unique.");
+            return Err("Node pubkeys are not unique.");
         };
         if !graph.is_well_connected() {
             return Err("Graph is not well connected. WotFollow.target_pubkey does not have a coresponding node.")
@@ -41,7 +41,7 @@ impl WotGraph {
                 }
             }
         };
-        is_target_missing
+        !is_target_missing
     }
 
      /**
@@ -90,6 +90,9 @@ impl WotGraph {
         result
     }
 
+    /**
+     * Layers of WotNodes. Last: WotClass(es)
+     */
     pub fn get_layers(&self) -> Vec<Vec<&WotNode>> {
         let mut remaining_nodes: Vec<&WotNode> = self.nodes.iter().collect();
         let mut layers: Vec<Vec<&WotNode>> = Vec::new();
@@ -166,16 +169,8 @@ mod tests {
             pubkey: "n2".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow {
-                        source_pubkey: "n2".to_string(),
-                        target_pubkey: "d1".to_string(),
-                        weight: 1.0,
-                    },
-                    WotFollow {
-                        source_pubkey: "n2".to_string(),
-                        target_pubkey: "d2".to_string(),
-                        weight: -1.0,
-                    },
+                    WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
+                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap()
                 ],
             },
         });
@@ -184,16 +179,8 @@ mod tests {
             pubkey: "n1".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow {
-                        source_pubkey: "n1".to_string(),
-                        target_pubkey: "d1".to_string(),
-                        weight: -0.5,
-                    },
-                    WotFollow {
-                        source_pubkey: "n1".to_string(),
-                        target_pubkey: "d2".to_string(),
-                        weight: 0.0,
-                    },
+                    WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()
                 ],
             },
         });
@@ -202,16 +189,8 @@ mod tests {
             pubkey: "me".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow {
-                        source_pubkey: "me".to_string(),
-                        target_pubkey: "n1".to_string(),
-                        weight: 1.0,
-                    },
-                    WotFollow {
-                        source_pubkey: "me".to_string(),
-                        target_pubkey: "n2".to_string(),
-                        weight: 0.5,
-                    },
+                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
+                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
                 ],
             },
         });
@@ -244,7 +223,7 @@ mod tests {
                 name: "example.com2".to_string(),
             },
         });
-        let result = std::panic::catch_unwind(|| WotGraph::new(nodes));
+        let result = WotGraph::new(nodes);
         assert!(result.is_err());
     }
 

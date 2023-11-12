@@ -93,6 +93,15 @@ pub struct WotFollow {
     pub weight: f32
 }
 
+impl WotFollow {
+    pub fn new(source_pubkey: String, target_pubkey: String, weight: f32) -> Result<Self, &'static str> {
+        if weight < -1.0 || weight > 1.0 {
+            return Err("Weight not in range of -1.0 to 1.0.")
+        }
+        Ok(WotFollow { target_pubkey, source_pubkey, weight })
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
