@@ -8,10 +8,13 @@ pub struct WotGraph {
 
 
 impl WotGraph {
-    
-    pub fn new(mut nodes: Vec<WotNode>) -> Self {
-        nodes.sort_unstable_by_key(|node| node.pubkey.clone());
-        WotGraph { nodes }
+    pub fn new(mut nodes: Vec<WotNode>) -> Result<Self, &'static str> {
+        if !WotNode::is_unique(&nodes) {
+            Err("Given node list with pubkeys, pubkeys are not unique.")
+        } else {
+            nodes.sort_unstable_by_key(|node| node.pubkey.clone());
+            Ok(WotGraph { nodes })
+        }
     }
 
     /**
@@ -26,7 +29,7 @@ impl WotGraph {
      * Find node by pubkey
      */
     pub fn get_node(&self, pubkey: &str) -> Option<&WotNode> {
-        self.nodes.iter().find(|node| node.pubkey == pubkey)
+        WotNode::binary_search(pubkey, &self.nodes)
     }
 
     pub fn get_classes(&self) -> Vec<&WotNode> {
@@ -69,7 +72,7 @@ impl WotGraph {
                     is_leaf_node = true
                 } else {
                     let target_node = follows.unwrap().iter().find(|follow| {
-                        let target_node = remaining_nodes.iter().find(|avail_node| avail_node.pubkey == follow.target_pubkey);
+                        let target_node = WotNode::binary_search_ref(&follow.target_pubkey, &remaining_nodes);
                         target_node.is_some()
                     });
                     is_leaf_node = target_node.is_none();
@@ -91,6 +94,10 @@ impl WotGraph {
         }
         layers.reverse();
         layers
+    }
+
+    pub fn depth(&self) -> usize {
+        self.get_layers().len()
     }
 }
 
@@ -173,15 +180,36 @@ mod tests {
             },
         });
 
-        WotGraph::new(nodes)
+        WotGraph::new(nodes).unwrap()
     }
     
     #[test]
     fn get_follow() {
         let graph = get_simple_graph();
-        assert_eq!(graph.nodes.len(), 4);
+        assert_eq!(graph.nodes.len(), 5);
         let follow = graph.get_follow("n2", "d1");
         assert_eq!(follow.unwrap().weight, 1.0);
+    }
+
+    #[test]
+    fn pubkeys_unique() {
+        let mut nodes: Vec<WotNode> = Vec::new();
+
+        // Classes
+        nodes.push(WotNode {
+            pubkey: "d1".to_string(),
+            typ: WotNodeType::WotClass {
+                name: "example.com1".to_string(),
+            },
+        });
+        nodes.push(WotNode {
+            pubkey: "d1".to_string(),
+            typ: WotNodeType::WotClass {
+                name: "example.com2".to_string(),
+            },
+        });
+        let result = std::panic::catch_unwind(|| WotGraph::new(nodes));
+        assert!(result.is_err());
     }
 
     #[test]
@@ -190,6 +218,7 @@ mod tests {
         assert_eq!(graph.get_node("n2").unwrap().pubkey, "n2");
         assert_eq!(graph.get_node("n2").unwrap().pubkey, "n2");
         assert_eq!(graph.get_node("n1").unwrap().pubkey, "n1");
+        assert_eq!(graph.get_node("missing").is_none(), true);
     }
 
     #[test]
@@ -239,6 +268,11 @@ mod tests {
         assert_eq!(third.len(), 2);
         assert_eq!(third[0].pubkey, "d1");
         assert_eq!(third[1].pubkey, "d2");
+    }
 
+    #[test]
+    fn depth() {
+        let graph = get_simple_graph();
+        assert_eq!(graph.depth(), 3);
     }
 }

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -46,6 +48,42 @@ impl WotNode {
     pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
         self.typ.get_follows()
     }
+
+    /**
+     * Finds a WotNode in a Vec<&WotNode>
+     */
+    pub fn binary_search_ref<'a>(pubkey: &str, list: &'a Vec<&WotNode>) -> Option<&'a WotNode> {
+        let result = list.binary_search_by_key(&pubkey, |node| &node.pubkey);
+        if let Ok(index) = result  {
+            let node = &list[index];
+            Some(node)
+        } else {
+            None
+        }
+    }
+
+    /**
+     * Finds a WotNode in a Vec<WotNode>
+     */
+    pub fn binary_search<'a>(pubkey: &str, list: &'a Vec<WotNode>) -> Option<&'a WotNode> {
+        let result = list.binary_search_by_key(&pubkey, |node| &node.pubkey);
+        if let Ok(index) = result  {
+            let node = &list[index];
+            Some(node)
+        } else {
+            None
+        }
+    }
+
+    /**
+     * Checks if pubkeys are unique in a Vec<WotNode>
+     */
+    pub fn is_unique(list: &Vec<WotNode>) -> bool {
+        let pubkeys = list.iter().map(|node| node.pubkey.clone());
+        let set: HashSet<String> = HashSet::from_iter(pubkeys);
+        set.len() == list.len()
+    }
+
 }
 
 impl PartialEq for WotNode {
