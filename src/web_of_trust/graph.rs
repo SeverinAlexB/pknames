@@ -1,5 +1,5 @@
 use super::node::{WotNode, WotFollow, WotNodeType};
-
+use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
 pub struct WotGraph {
@@ -9,12 +9,48 @@ pub struct WotGraph {
 
 impl WotGraph {
     pub fn new(mut nodes: Vec<WotNode>) -> Result<Self, &'static str> {
-        if !WotNode::is_unique(&nodes) {
-            Err("Given node list with pubkeys, pubkeys are not unique.")
-        } else {
-            nodes.sort_unstable_by_key(|node| node.pubkey.clone());
-            Ok(WotGraph { nodes })
-        }
+        nodes.sort_unstable_by_key(|node| node.pubkey.clone());
+        let graph = WotGraph { nodes };
+        
+        if !graph.is_unique() {
+            return Err("Given node list with pubkeys, pubkeys are not unique.");
+        };
+        if !graph.is_well_connected() {
+            return Err("Graph is not well connected. WotFollow.target_pubkey does not have a coresponding node.")
+        };
+
+        Ok(graph)
+    }
+
+    /**
+     * Checks if all follow target nodes exist.
+     */
+    fn is_well_connected(&self) -> bool {
+        let mut is_target_missing = false;
+        'outer: for node in self.nodes.iter() {
+            let follows = node.get_follows();
+            if follows.is_none() {
+                continue;
+            }
+
+            for follow in follows.unwrap().iter() {
+                let target = self.get_node(&follow.target_pubkey);
+                if target.is_none() {
+                    is_target_missing = true;
+                    break 'outer
+                }
+            }
+        };
+        is_target_missing
+    }
+
+     /**
+     * Checks if pubkeys are unique
+     */
+    pub fn is_unique(&self) -> bool {
+        let pubkeys = self.nodes.iter().map(|node| node.pubkey.clone());
+        let set: HashSet<String> = HashSet::from_iter(pubkeys);
+        set.len() == self.nodes.len()
     }
 
     /**

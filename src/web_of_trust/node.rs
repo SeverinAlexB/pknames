@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+
 
 
 #[derive(Debug, Clone)]
@@ -75,14 +75,7 @@ impl WotNode {
         }
     }
 
-    /**
-     * Checks if pubkeys are unique in a Vec<WotNode>
-     */
-    pub fn is_unique(list: &Vec<WotNode>) -> bool {
-        let pubkeys = list.iter().map(|node| node.pubkey.clone());
-        let set: HashSet<String> = HashSet::from_iter(pubkeys);
-        set.len() == list.len()
-    }
+
 
 }
 
