@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 burn = { version = "0.10.0", features = ["ndarray"] }
+serde = "1.0.192"
+
