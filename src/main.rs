@@ -1,5 +1,5 @@
 mod web_of_trust;
-mod nn;
+
 // use crate::web_of_trust::node::{WotClass, WotFollow, WotNodeTrait, WotNode};
 // use crate::web_of_trust::graph::{WotGraph};
 

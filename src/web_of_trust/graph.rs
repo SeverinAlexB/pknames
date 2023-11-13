@@ -1,4 +1,4 @@
-use super::node::{WotNode, WotFollow, WotNodeType};
+use super::{node::{WotNode, WotFollow, WotNodeType}, predictor::WotPredictor};
 use std::collections::HashSet;
 
 #[derive(Debug, Clone)]
@@ -137,6 +137,12 @@ impl WotGraph {
 
     pub fn depth(&self) -> usize {
         self.get_layers().len()
+    }
+}
+
+impl From<WotPredictor> for WotGraph {
+    fn from(value: WotPredictor) -> Self {
+        value.graph
     }
 }
 

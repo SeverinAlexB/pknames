@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-burn = { version = "0.10.0", features = ["ndarray"] }
+burn = { version = "0.10.0", features = ["ndarray", "train-minimal", "autodiff"] }
 serde = "1.0.192"
 
