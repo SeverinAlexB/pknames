@@ -1,12 +1,13 @@
 use burn::{
-    module::{Module, ADModule},
+    module::Module,
     module::Param,
     nn::{Linear, loss::CrossEntropyLoss},
     backend::NdArrayBackend,
-    tensor::{Tensor, Data, Shape, activation::{relu, softmax}},
-    train::ClassificationOutput,
-    autodiff::{ADBackendDecorator, grads::Gradients}
+    tensor::{Tensor, Data, Shape, activation::{relu, softmax}, Int},
+    autodiff::ADBackendDecorator
 };
+
+
 
 
 type MyBackend = ADBackendDecorator<NdArrayBackend<f32>>;
@@ -18,7 +19,6 @@ pub struct FeedForward {
 
 
 impl FeedForward {
-
     fn new_linear(inputs: usize, outputs: usize, weights: Vec<f32>) -> Linear<MyBackend> {
         let shape = Shape::new([inputs, outputs]);
         let data: Data<f32, 2> = Data::new(weights, shape);
@@ -34,7 +34,7 @@ impl FeedForward {
         }
     }
 
-        /**
+    /**
      * Create new network by data (tensor + shape).
      */
     pub fn new(weights: Vec<Data<f32, 2>>) -> Self {
@@ -42,6 +42,13 @@ impl FeedForward {
         Self {
             linears
         }
+    }
+
+    pub fn to_weights(&self) -> Vec<Data<f32, 2>> {
+        let weights: Vec<Data<f32, 2>> = self.linears.clone().into_iter().map(|linear| {
+            linear.weight.to_data()
+        }).collect();
+        weights
     }
 
     pub fn forward(&self) -> Vec<Vec<f32>> {
@@ -60,24 +67,43 @@ impl FeedForward {
         outputs
     }
 
-    pub fn train(&self, target: Vec<i64>) -> Gradients {
+    pub fn train(&self, target_index: i64, learning_rates: Vec<f64>) -> Self {
+        if learning_rates.len() != self.linears.len() {
+            panic!("Number of learning rates different to the number of layers. {} rates vs {} layers", learning_rates.len(), self.linears.len())
+        }
+
+
         let input: Tensor<MyBackend, 2> = Tensor::ones(Shape::new([1, 1]));
         let mut x: Tensor<MyBackend, 2> = input;
         for i in 0..(self.linears.len() -1) {
             x = self.linears[i].forward(x);
             x = relu(x);
         }
-        // Last output with softmax instead of relu
-        let x = self.linears[self.linears.len() - 1].forward(x);
-        let x = softmax(x, 1);
-        let x_with_batch = x.clone().reshape(Shape::new([1,2]));
-        
-        let targets: Tensor<MyBackend, 1, _> = Tensor::from_data(Data::new(target, Shape::new([2])));
-        let loss: Tensor<MyBackend, 1> = CrossEntropyLoss::new(None).forward(x_with_batch, targets.clone());
-        let gradient = loss.backward();
-        gradient
 
+        let x = self.linears[self.linears.len() - 1].forward(x);
+        // Don't use softmax here because it screws up the loss function.
+
+        let targets: Tensor<MyBackend, 1, Int> = Tensor::from_data(Data::new(vec![target_index], Shape::new([1])));
+        let loss: Tensor<MyBackend, 1> = CrossEntropyLoss::new(None).forward(x.clone(), targets.clone());
         
+        let mut gradient = loss.backward();
+
+        let new_layers: Vec<Linear<MyBackend>> = self.linears.iter().enumerate().map(|(i, linear)| {
+            let learning_rate = learning_rates[i];
+            let grad = linear.weight.grad_remove(&mut gradient).unwrap();
+            let grad = grad.mul_scalar(learning_rate);
+            let grad = grad.to_data();
+            let grad: Tensor<MyBackend, 2> = Tensor::from_data(grad);
+
+            let weight = linear.weight.to_data();
+            let weight:Tensor<MyBackend, 2> = Tensor::from_data(weight);
+
+            let new_weight = weight.sub(grad);
+            Self::new_linear_by_data(new_weight.to_data())
+        }).collect();
+        FeedForward {
+            linears: new_layers
+        }
     }
 }
 
@@ -88,6 +114,7 @@ impl FeedForward {
 mod tests {
     use burn::tensor::{Shape, Data};
     use super::FeedForward;
+    use assert_approx_eq::assert_approx_eq;
 
     #[test]
     fn run() {        
@@ -110,10 +137,15 @@ mod tests {
         let weights = vec![
             Data::new(vec![1.0], Shape::new([1,1])),
             Data::new(vec![1.0, 0.5], Shape::new([1,2])),
-            Data::new(vec![-0.5, 0.0, 1.0, -1.0], Shape::new([2,2]))
+            Data::new(vec![-0.5*3.0, 1.0*3.0, 0.0*3.0, 1.0*3.0], Shape::new([2,2]))
         ];
-        let net: FeedForward = FeedForward::new(weights);
-        let output = net.train(vec![1,0]);
-        let _l = output;
+        let net1: FeedForward = FeedForward::new(weights);
+        let out1 = net1.forward();
+        assert_approx_eq!(out1[2][0], 0.0, 0.01);
+        assert_approx_eq!(out1[2][1], 1.0, 0.01);
+        let net2 = net1.train(0, vec![0.0, 0.1, 3.0]);
+        let out2 = net2.forward();
+        assert_approx_eq!(out2[2][0], 0.6935, 0.001);
+        assert_approx_eq!(out2[2][1], 0.3064, 0.001);
     }
 }

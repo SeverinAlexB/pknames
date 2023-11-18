@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+assert_approx_eq = "1.1.0"
 burn = { version = "0.10.0", features = ["ndarray", "train-minimal", "autodiff"] }
+# burn = { path = "/Users/severinbuhler/git/ddns/burn/burn", features = ["ndarray", "train-minimal", "autodiff"] }
+
 serde = "1.0.192"
 

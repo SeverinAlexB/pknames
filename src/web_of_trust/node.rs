@@ -135,4 +135,15 @@ mod tests {
         assert_eq!(list[2].pubkey, "c");
         assert_eq!(list[3].pubkey, "d");
     }
+
+    #[test]
+    fn my_test() {
+        let pubkey = String::from("hello");
+        let node = WotNode {
+            pubkey: pubkey.clone(),
+            typ: WotNodeType::WotFollowNode { follows: vec![] }
+        };
+        println!("{}", pubkey);
+
+    }
 }
