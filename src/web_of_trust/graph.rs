@@ -61,6 +61,14 @@ impl WotGraph {
         source.get_follow(target_pubkey)
     }
 
+        /**
+     * Get WotFollow by pubkeys
+     */
+    pub fn get_follow_mut(&mut self, source_pubkey: &str, target_pubkey: &str) -> Option<&mut WotFollow> {
+        let source = self.nodes.iter_mut().find(|n| n.pubkey == source_pubkey)?;
+        source.get_follow_mut(target_pubkey)
+    }
+
     /**
      * Find node by pubkey
      */

@@ -30,6 +30,20 @@ impl WotNodeType {
             }
         }
     }
+
+    pub fn get_follows_mut(&mut self) -> Option<&mut Vec<WotFollow>> {
+        match self {
+            WotNodeType::WotClass { name: _ } => {
+                None
+            },
+            WotNodeType::WotFollowNode {follows} => {
+                Some(follows)
+            },
+            WotNodeType::WotTempNode { follows } => {
+                Some(follows)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -42,6 +56,12 @@ impl WotNode {
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
         let follows = self.typ.get_follows()?;
         let found = follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
+        found
+    }
+
+    pub fn get_follow_mut(&mut self, target_pubkey: &str) -> Option<&mut WotFollow> {
+        let mut follows = self.typ.get_follows_mut()?;
+        let found = follows.iter_mut().find(| follow| follow.target_pubkey == target_pubkey);
         found
     }
 
