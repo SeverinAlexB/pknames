@@ -16,7 +16,7 @@ impl fmt::Display for WotGraph {
             format!("Layer {}\n{}", i, lay)
         }).collect();
 
-        let graph = layers_strings.join("\n\n");
+        let graph = layers_strings.join("\n");
         write!(f, "{}",  graph)
     }
 }
