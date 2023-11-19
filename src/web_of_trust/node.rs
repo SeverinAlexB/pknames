@@ -1,3 +1,5 @@
+use std::fmt;
+
 
 
 
@@ -7,9 +9,7 @@ pub enum WotNodeType {
     WotFollowNode {
         follows: Vec<WotFollow>
     },
-    WotClass {
-        name: String
-    },
+    WotClass,
     
     WotTempNode {
         follows: Vec<WotFollow>
@@ -19,7 +19,7 @@ pub enum WotNodeType {
 impl WotNodeType {
     pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
         match self {
-            WotNodeType::WotClass { name: _ } => {
+            WotNodeType::WotClass => {
                 None
             },
             WotNodeType::WotFollowNode {follows} => {
@@ -33,7 +33,7 @@ impl WotNodeType {
 
     pub fn get_follows_mut(&mut self) -> Option<&mut Vec<WotFollow>> {
         match self {
-            WotNodeType::WotClass { name: _ } => {
+            WotNodeType::WotClass => {
                 None
             },
             WotNodeType::WotFollowNode {follows} => {
@@ -46,10 +46,47 @@ impl WotNodeType {
     }
 }
 
+impl fmt::Display for WotNodeType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let follows = self.get_follows();
+        let follow_str = match follows {
+            None => String::from(""),
+            Some(follows) => {
+                let strings: Vec<String> = follows.iter().map(|follow| format!("{}: {}", follow.target_pubkey, follow.weight)).collect();
+                strings.join(", ")
+            }
+        };
+
+        match self {
+            WotNodeType::WotTempNode { follows } => {
+                write!(f, "temp follows {:?}", follow_str)
+            },
+            WotNodeType::WotClass => {
+                write!(f, "class")
+            },
+            WotNodeType::WotFollowNode { follows } => {
+                write!(f, "follows {}", follow_str)
+            }
+        }
+        
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct WotNode {
     pub pubkey: String,
+    pub alias: Option<String>,
     pub typ: WotNodeType
+}
+
+impl fmt::Display for WotNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut name = self.pubkey.clone();
+        if let Some(alias) = self.alias.clone() {
+            name = format!("{} ({})",alias, name);
+        }
+        write!(f, "{} {}", name, self.typ)
+    }
 }
 
 impl WotNode {
@@ -125,6 +162,8 @@ impl WotFollow {
 
 #[cfg(test)]
 mod tests {
+    use crate::web_of_trust::node::WotFollow;
+
     use super::{WotNode, WotNodeType};
 
     #[test]
@@ -132,18 +171,22 @@ mod tests {
         let mut list = vec![
             WotNode {
                 pubkey: "c".to_string(),
+                alias: None,
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
             WotNode {
                 pubkey: "b".to_string(),
+                alias: None,
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
             WotNode {
                 pubkey: "a".to_string(),
+                alias: None,
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
             WotNode {
                 pubkey: "d".to_string(),
+                alias: None,
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
         ];
@@ -161,9 +204,33 @@ mod tests {
         let pubkey = String::from("hello");
         let node = WotNode {
             pubkey: pubkey.clone(),
+            alias: None,
             typ: WotNodeType::WotFollowNode { follows: vec![] }
         };
         println!("{}", pubkey);
+
+    }
+
+    #[test]
+    fn display_node() {
+        let pubkey = String::from("923jladsf");
+        let node = WotNode {
+            pubkey: pubkey.clone(),
+            alias: Some("me".to_string()),
+            typ: WotNodeType::WotFollowNode { follows: vec![
+                WotFollow {
+                    source_pubkey: String::from("hello"),
+                    target_pubkey: String::from("n1"),
+                    weight: 1.0
+                },
+                WotFollow {
+                    source_pubkey: String::from("hello"),
+                    target_pubkey: String::from("n2"),
+                    weight: -1.0
+                }
+            ] }
+        };
+        println!("{}", node);
 
     }
 }

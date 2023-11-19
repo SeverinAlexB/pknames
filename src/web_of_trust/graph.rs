@@ -1,9 +1,24 @@
 use super::{node::{WotNode, WotFollow, WotNodeType}, predictor::WotPredictor};
-use std::collections::HashSet;
+use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone)]
 pub struct WotGraph {
     pub nodes: Vec<WotNode>
+}
+
+impl fmt::Display for WotGraph {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let layers = self.get_layers();
+
+        let layers_strings:Vec<String> = layers.iter().enumerate().map(|(i, layer)| {
+            let node_strings: Vec<String> = layer.iter().map(|node| format!("- {}", node)).collect();
+            let lay = node_strings.join("\n");
+            format!("Layer {}\n{}", i, lay)
+        }).collect();
+
+        let graph = layers_strings.join("\n\n");
+        write!(f, "{}",  graph)
+    }
 }
 
 
@@ -78,7 +93,7 @@ impl WotGraph {
 
     pub fn get_classes(&self) -> Vec<&WotNode> {
         let result: Vec<&WotNode> = self.nodes.iter().filter(|n| {
-            if let WotNodeType::WotClass { name: _ } = n.typ {
+            if let WotNodeType::WotClass = n.typ {
                 true
             } else {
                 false
@@ -168,19 +183,18 @@ mod tests {
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com1".to_string(),
-            },
+            alias: Some(String::from("example.com1")),
+            typ: WotNodeType::WotClass,
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com2".to_string(),
-            },
+            alias: Some(String::from("example.com2")),
+            typ: WotNodeType::WotClass,
         });
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
@@ -191,6 +205,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
@@ -201,6 +216,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
@@ -227,15 +243,13 @@ mod tests {
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com1".to_string(),
-            },
+            alias: Some(String::from("example.com1")),
+            typ: WotNodeType::WotClass,
         });
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com2".to_string(),
-            },
+            alias: Some(String::from("example.com2")),
+            typ: WotNodeType::WotClass,
         });
         let result = WotGraph::new(nodes);
         assert!(result.is_err());
@@ -303,5 +317,11 @@ mod tests {
     fn depth() {
         let graph = get_simple_graph();
         assert_eq!(graph.depth(), 3);
+    }
+
+    #[test]
+    fn display() {
+        let graph = get_simple_graph();
+        println!("{}", graph)
     }
 }

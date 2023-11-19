@@ -122,6 +122,7 @@ impl WotPredictor {
                     if let None = target_node_in_next_layer {
                         let temp = WotNode{
                             pubkey: follow.target_pubkey.clone(),
+                            alias: None,
                             typ: super::node::WotNodeType::WotTempNode { 
                                 follows:  vec![WotFollow::new(follow.target_pubkey.clone(), follow.target_pubkey.clone(), 1.0).unwrap()]
                             }
@@ -137,7 +138,7 @@ impl WotPredictor {
     }
 
     fn two_layers_to_weights(&self, previous_layer: &Vec<WotNode>, current_layer: &Vec<WotNode>) -> Data<f32, 2> {
-        let is_last_layer = if let WotNodeType::WotClass{name} = current_layer[0].clone().typ {
+        let is_last_layer = if let WotNodeType::WotClass = current_layer[0].clone().typ {
             true
         } else {
             false
@@ -189,7 +190,7 @@ impl WotPredictor {
                     let current_node = &current_layer[y];
 
                     let is_last_layer = match &current_node.typ {
-                        WotNodeType::WotClass { name } => {
+                        WotNodeType::WotClass => {
                             true
                         },
                         _ => false
@@ -237,19 +238,18 @@ mod tests {
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com1".to_string(),
-            },
+            alias: Some(String::from("example.com1")),
+            typ: WotNodeType::WotClass,
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com2".to_string(),
-            },
+            alias: Some(String::from("example.com2")),
+            typ: WotNodeType::WotClass,
         });
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
@@ -260,6 +260,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
@@ -270,6 +271,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
@@ -287,19 +289,18 @@ mod tests {
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com1".to_string(),
-            },
+            alias: Some(String::from("example.com1")),
+            typ: WotNodeType::WotClass,
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
-            typ: WotNodeType::WotClass {
-                name: "example.com2".to_string(),
-            },
+            alias: Some(String::from("example.com2")),
+            typ: WotNodeType::WotClass,
         });
 
         nodes.push(WotNode {
             pubkey: "n3".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "d1".to_string(), 1.0).unwrap(),
@@ -310,6 +311,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap()
@@ -319,6 +321,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "n3".to_string(), 1.0).unwrap(),
@@ -328,6 +331,7 @@ mod tests {
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
+            alias: None,
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
@@ -397,5 +401,14 @@ mod tests {
         assert_approx_eq!(new_weights[2].value[1], 2.45, 0.1);
         assert_approx_eq!(new_weights[2].value[2], 1.77, 0.1);
         assert_approx_eq!(new_weights[2].value[3], -1.77, 0.1);
+    }
+
+    #[test]
+    fn train_back_to_graph() {
+        let graph = get_simple_graph();
+        let mut predictor: WotPredictor = graph.into();
+        predictor.train("d2", vec![0.1, 1.0]);
+        let updated: WotGraph = predictor.into();
+        
     }
 }
