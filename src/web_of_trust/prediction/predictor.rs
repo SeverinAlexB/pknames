@@ -223,7 +223,7 @@ impl From<WotGraph> for WotPredictor {
 
 #[cfg(test)]
 mod tests {
-    use crate::web_of_trust::predictor::WotPredictor;
+    use crate::web_of_trust::prediction::predictor::WotPredictor;
 
     use super::super::node::{WotNode, WotNodeType, WotFollow};
     use super::WotGraph;

@@ -9,4 +9,5 @@ burn = { version = "0.10.0", features = ["ndarray", "train-minimal", "autodiff"]
 # burn = { path = "/Users/severinbuhler/git/ddns/burn/burn", features = ["ndarray", "train-minimal", "autodiff"] }
 
 serde = "1.0.192"
+serde_json = "1.0.108"
 

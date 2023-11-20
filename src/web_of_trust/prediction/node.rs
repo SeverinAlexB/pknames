@@ -162,7 +162,7 @@ impl WotFollow {
 
 #[cfg(test)]
 mod tests {
-    use crate::web_of_trust::node::WotFollow;
+    use crate::web_of_trust::prediction::node::WotFollow;
 
     use super::{WotNode, WotNodeType};
 

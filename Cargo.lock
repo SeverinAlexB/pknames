@@ -398,6 +398,7 @@ dependencies = [
  "assert_approx_eq",
  "burn",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
