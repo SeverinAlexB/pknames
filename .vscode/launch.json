@@ -19,27 +19,12 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": [
+                "--verbose",
+                "lookup",
+                "example.com"
+            ],
             "cwd": "${workspaceFolder}"
         },
-        // {
-        //     "type": "lldb",
-        //     "request": "launch",
-        //     "name": "Debug unit tests in executable 'hello_world'",
-        //     "cargo": {
-        //         "args": [
-        //             "test",
-        //             "--no-run",
-        //             "--bin=hello_world",
-        //             "--package=hello_world"
-        //         ],
-        //         "filter": {
-        //             "name": "hello_world",
-        //             "kind": "bin"
-        //         }
-        //     },
-        //     "args": [],
-        //     "cwd": "${workspaceFolder}"
-        // }
     ]
 }
