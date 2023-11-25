@@ -1,8 +1,11 @@
 use clap::ArgMatches;
 
-use crate::cli::{lookup::cli_lookup, ls::cli_ls};
+use crate::cli::commands::{lookup::cli_lookup, ls::cli_ls};
 use std::path::{PathBuf, Path};
 
+/**
+ * Main cli entry function.
+ */
 pub fn run_cli() {
     let cmd = clap::Command::new("fancydns")
         .about("A web of trust nslookup replacement.")
@@ -47,7 +50,10 @@ pub fn run_cli() {
 
 }
 
-
+/**
+ * Extract folder path and make sure it is valid.
+ * Creates the folder if it does not exist.
+ */
 fn validate_folder(matches: &ArgMatches) -> Result<PathBuf, String> {
     let input: &String = matches.get_one("folder").unwrap();
     let expanded = shellexpand::tilde(input);

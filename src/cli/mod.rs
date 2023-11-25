@@ -1,3 +1,3 @@
 pub mod cli;
-mod lookup;
-mod ls;
+mod config_folder;
+mod commands;
