@@ -4,9 +4,9 @@ use super::{graph::WotGraph, node::{WotNode, WotFollow}};
 
 /**
  * Turns the possibly cyclical Web of Trust graph into an acyclical graph.
- * This is need to do any calculations on it.
+ * This is needed to do any calculation.
  * Intuitively, it removes all follows that point back towards the me node. 
- * It also removes all nodes that do not have contribute to the classes.
+ * It also removes all nodes that do not contribute to the classes.
  * 
  * Todo: Research if this type of pruning can be abused to influence the web of trust.
  */
@@ -49,7 +49,7 @@ impl<'a> GraphPruner<'a> {
         self.visited.remove(visited_index);
     }
 
-    pub fn run(&mut self) -> Vec<Vec<&'a WotNode>> {
+    fn search_paths(&mut self) -> Vec<Vec<&'a WotNode>> {
         let classes = self.graph.get_classes();
         for class in classes.iter() {
             let mut current_path = vec![self.start];
@@ -95,7 +95,7 @@ impl<'a> GraphPruner<'a> {
         diff
     }
 
-    pub fn prune(&mut self) -> WotGraph {
+    pub fn clone_and_prune(&mut self) -> WotGraph {
         let follows = self.get_found_follows();
         let mut map: HashMap<String, Vec<WotFollow>> = HashMap::new();
 
@@ -119,6 +119,13 @@ impl<'a> GraphPruner<'a> {
         }).collect();
 
         WotGraph::new(nodes).unwrap()
+    }
+
+    pub fn prune(graph: &WotGraph) -> WotGraph {
+        let mut pruner = GraphPruner::new(graph);
+        pruner.search_paths();
+        let pruned = pruner.clone_and_prune();
+        pruned
     }
     
 }
@@ -213,7 +220,7 @@ mod tests {
     fn run() {
         let graph = get_simple_graph();
         let mut search = GraphPruner::new(&graph);
-        let result = search.run();
+        let result = search.search_paths();
         println!("{}", search);
         assert_eq!(result.len(), 4);
         
@@ -248,11 +255,8 @@ mod tests {
     #[test]
     fn prune() {
         let graph = get_simple_graph();
-        let mut search = GraphPruner::new(&graph);
-        let result = search.run();
-        let pruned = search.prune();
-        print!("");
-
+        let pruned = GraphPruner::prune(&graph);
+        assert_eq!(pruned.nodes.len(), 5);
     }
 
 }

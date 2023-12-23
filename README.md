@@ -6,9 +6,9 @@ An experimental and general Web of Trust (WoT) library. WIP.
 
 - [x] Simple probability interference
 - [x] Backpropagation to blame intermediate for the right/wrong results.
-- [ ] Graph visualization
-- [ ] Graph pruning
-- [ ] Transform cyclical graph to acyclical.
+- [x] Graph visualization
+- [x] Graph pruning
+- [x] Transform cyclical graph to acyclical.
 - [ ] CLI for a petname example use case.
 - [ ] Reseach gameability
     - [ ] Graph cycle removal abuse
