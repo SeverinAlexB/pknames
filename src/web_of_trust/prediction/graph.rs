@@ -1,5 +1,7 @@
+use petgraph::{graph::DiGraph, stable_graph::StableGraph, stable_graph::NodeIndex};
+
 use super::{node::{WotNode, WotFollow, WotNodeType}, predictor::WotPredictor};
-use std::{collections::HashSet, fmt};
+use std::{collections::{HashSet, HashMap}, fmt};
 
 #[derive(Debug, Clone)]
 pub struct WotGraph {
@@ -168,6 +170,8 @@ impl From<WotPredictor> for WotGraph {
         value.graph
     }
 }
+
+
 
 #[cfg(test)]
 mod tests {
