@@ -36,6 +36,10 @@ impl<'a> GraphPruner<'a> {
             if let Some(follows) = current.get_follows() {
                 for follow in follows {
                     let target_node = self.graph.get_node(&follow.target_pubkey).unwrap();
+                    if current_path.contains(&target_node) {
+                        // Todo: Remove this cycle
+                        println!("Cycle?");
+                    };
                     let has_been_visited = self.visited.contains(&target_node.pubkey);
                     if !has_been_visited {
                         current_path.push(target_node);
@@ -216,8 +220,83 @@ mod tests {
         WotGraph::new(nodes).unwrap()
     }
     
+
+    fn get_critical_graph() -> WotGraph {
+        let mut nodes: Vec<WotNode> = Vec::new();
+
+        // Classes
+        nodes.push(WotNode {
+            pubkey: "d1".to_string(),
+            alias: Some(String::from("example.com1")),
+            typ: WotNodeType::WotClass,
+        });
+        nodes.push(WotNode {
+            pubkey: "d2".to_string(),
+            alias: Some(String::from("example.com2")),
+            typ: WotNodeType::WotClass,
+        });
+
+
+
+        nodes.push(WotNode {
+            pubkey: "n1".to_string(),
+            alias: None,
+            typ: WotNodeType::WotFollowNode {
+                follows: vec![
+                    WotFollow::new("n1".to_string(), "n4".to_string(), -0.5).unwrap(),
+                ],
+            },
+        });
+
+        nodes.push(WotNode {
+            pubkey: "n2".to_string(),
+            alias: None,
+            typ: WotNodeType::WotFollowNode {
+                follows: vec![
+                    WotFollow::new("n2".to_string(), "n3".to_string(), 1.0).unwrap(),
+                ],
+            },
+        });
+
+        nodes.push(WotNode {
+            pubkey: "n3".to_string(),
+            alias: None,
+            typ: WotNodeType::WotFollowNode {
+                follows: vec![
+                    WotFollow::new("n3".to_string(), "d2".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n3".to_string(), "n1".to_string(), -0.5).unwrap(),
+                ],
+            },
+        });
+
+        nodes.push(WotNode {
+            pubkey: "n4".to_string(),
+            alias: None,
+            typ: WotNodeType::WotFollowNode {
+                follows: vec![
+                    WotFollow::new("n4".to_string(), "d1".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n4".to_string(), "n2".to_string(), -0.5).unwrap(),
+                ],
+            },
+        });
+
+        nodes.push(WotNode {
+            pubkey: "me".to_string(),
+            alias: None,
+            typ: WotNodeType::WotFollowNode {
+                follows: vec![
+                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
+                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
+                ],
+            },
+        });
+
+        WotGraph::new(nodes).unwrap()
+    }
+    
+
     #[test]
-    fn run() {
+    fn search() {
         let graph = get_simple_graph();
         let mut search = GraphPruner::new(&graph);
         let result = search.search_paths();
@@ -257,6 +336,43 @@ mod tests {
         let graph = get_simple_graph();
         let pruned = GraphPruner::prune(&graph);
         assert_eq!(pruned.nodes.len(), 5);
+    }
+
+    #[test]
+    fn search_critical_graph() {
+        let graph = get_critical_graph();
+        let pruned1 = GraphPruner::prune(&graph);
+        let mut search = GraphPruner::new(&pruned1);
+        let result = search.search_paths();
+        println!("{}", search);
+
+        
+        // let found: HashSet<String> = search.get_found_nodes().iter().map(|n| n.pubkey.clone()).collect();
+        // assert_eq!(found.len(), 5);
+        // assert!(found.contains("me"));
+        // assert!(found.contains("n1"));
+        // assert!(found.contains("n2"));
+        // assert!(found.contains("d1"));
+        // assert!(found.contains("d2"));
+
+        // let missing: HashSet<String> = search.get_missing_nodes().iter().map(|n| n.pubkey.clone()).collect();
+        // assert_eq!(missing.len(), 1);
+        // assert!(missing.contains("n3"));
+
+        // let found = search.get_found_follows();
+        // assert_eq!(found.len(), 6);
+        // assert!(found.contains(&WotFollow::new("me".to_string(), "n1".to_string(), 0.0).unwrap()));
+        // assert!(found.contains(&WotFollow::new("me".to_string(), "n2".to_string(), 0.0).unwrap()));
+        // assert!(found.contains(&WotFollow::new("n1".to_string(), "d1".to_string(), 0.0).unwrap()));
+        // assert!(found.contains(&WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()));
+        // assert!(found.contains(&WotFollow::new("n2".to_string(), "d1".to_string(), 0.0).unwrap()));
+        // assert!(found.contains(&WotFollow::new("n2".to_string(), "d2".to_string(), 0.0).unwrap()));
+
+        // let missing = search.get_missing_follows();
+        // assert_eq!(missing.len(), 3);
+        // assert!(missing.contains(&WotFollow::new("n2".to_string(), "n3".to_string(), 0.0).unwrap()));
+        // assert!(missing.contains(&WotFollow::new("n3".to_string(), "me".to_string(), 0.0).unwrap()));
+        // assert!(missing.contains(&WotFollow::new("n1".to_string(), "me".to_string(), 0.0).unwrap()));
     }
 
 }

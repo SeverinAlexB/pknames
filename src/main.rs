@@ -88,7 +88,8 @@ mod cli;
 
 fn main() {
     let wot_graph = get_simple_graph();
-    visualize_graph(wot_graph.clone(), "Original graph");
-    // let pruned = GraphPruner::prune(&wot_graph);
-    // visualize_graph(pruned.clone(), "Pruned graph");
+    let layers = wot_graph.get_layers();
+    // visualize_graph(wot_graph.clone(), "Original graph");
+    let pruned = GraphPruner::prune(&wot_graph);
+    visualize_graph(pruned.clone(), "Pruned graph");
 }
