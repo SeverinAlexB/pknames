@@ -7,6 +7,14 @@ edition = "2021"
 assert_approx_eq = "1.1.0"
 burn = { version = "0.10.0", features = ["ndarray", "train-minimal", "autodiff"] }
 clap = { version = "4.4.8", features = ["derive"] }
+crossbeam = "0.8.2"
+eframe = "0.24.1"
+egui = "0.24.1"
+egui_graphs = { version = "0.17.0", features = ["events"] }
+fdg-sim = "0.9.1"
+petgraph = "0.6.4"
+rand = "0.8.5"
+
 
 
 serde = "1.0.192"
