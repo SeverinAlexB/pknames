@@ -30,6 +30,7 @@ fn get_simple_graph() -> WotGraph {
             follows: vec![
                 WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
                 WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap(),
+                WotFollow::new("n2".to_string(), "me".to_string(), -1.0).unwrap(),
             ],
         },
     });

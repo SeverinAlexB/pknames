@@ -1,5 +1,5 @@
 use std::fmt;
-
+use std::hash::Hash;
 
 
 
@@ -142,6 +142,14 @@ impl PartialEq for WotNode {
     }
 }
 
+impl Eq for WotNode {}
+
+impl Hash for WotNode {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.pubkey.hash(state);
+    }
+}
+
 // Follow
 #[derive(Debug, Clone)]
 pub struct WotFollow {
@@ -156,6 +164,27 @@ impl WotFollow {
             return Err("Weight not in range of -1.0 to 1.0.")
         }
         Ok(WotFollow { target_pubkey, source_pubkey, weight })
+    }
+}
+
+impl fmt::Display for WotFollow {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} -> {} {}", self.source_pubkey, self.target_pubkey, self.weight)
+    }
+}
+
+impl PartialEq for WotFollow {
+    fn eq(&self, other: &Self) -> bool {
+        self.target_pubkey == other.target_pubkey && self.source_pubkey == other.source_pubkey
+    }
+}
+
+impl Eq for WotFollow {}
+
+impl Hash for WotFollow {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.source_pubkey.hash(state);
+        self.target_pubkey.hash(state);
     }
 }
 
