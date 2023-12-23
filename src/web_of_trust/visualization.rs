@@ -84,12 +84,12 @@ impl App for InteractiveApp {
 /**
  * Show a GUI that visualized the graph in a simple way.
  */
-pub fn visualize_graph(graph: WotGraph) -> () {
+pub fn visualize_graph(graph: WotGraph, title: &str) -> () {
     let egui_graph: Graph<WotNode, WotFollow> = graph.into();
 
     let native_options = eframe::NativeOptions::default();
     run_native(
-        "egui_graphs_interactive_demo",
+        title,
         native_options,
         Box::new(|cc| Box::new(InteractiveApp::new(cc, egui_graph))),
     )

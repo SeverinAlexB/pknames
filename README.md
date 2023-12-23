@@ -1,6 +1,6 @@
 # fancyd-rust
 
-An experimental and general Web of Trust (WoT) library. WIP.
+An experimental Web of Trust (WoT) library. WIP.
 
 ## Todos
 
