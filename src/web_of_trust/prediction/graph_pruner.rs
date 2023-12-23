@@ -2,6 +2,14 @@ use std::{collections::{HashSet, HashMap}, fmt};
 
 use super::{graph::WotGraph, node::{WotNode, WotFollow}};
 
+/**
+ * Turns the possibly cyclical Web of Trust graph into an acyclical graph.
+ * This is need to do any calculations on it.
+ * Intuitively, it removes all follows that point back towards the me node. 
+ * It also removes all nodes that do not have contribute to the classes.
+ * 
+ * Todo: Research if this type of pruning can be abused to influence the web of trust.
+ */
 pub struct GraphPruner<'a> {
     graph: &'a WotGraph,
     current_paths: Vec<Vec<&'a WotNode>>,
