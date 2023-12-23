@@ -4,8 +4,8 @@ An experimental and general Web of Trust (WoT) library. WIP.
 
 ## Todos
 
-- [x] Simple probability predictions
-- [x] Backpropagation to blame intermediate for the right/wrong result.
+- [x] Simple probability interference
+- [x] Backpropagation to blame intermediate for the right/wrong results.
 - [ ] Graph visualization
 - [ ] Graph pruning
 - [ ] Transform cyclical graph to acyclical.
