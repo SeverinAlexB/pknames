@@ -8,11 +8,13 @@ use super::{graph::WotGraph, node::{WotNode, WotFollow}};
  * Intuitively, it removes all follows that point back towards the me node. 
  * It also removes all nodes that do not contribute to the classes.
  * 
- * Todo: Research if this type of pruning can be abused to influence the web of trust.
+ * Todo: Research if this type of pruning cycles can be abused to influence the web of trust.
+ * https://github.com/zhenv5/breaking_cycles_in_noisy_hierarchies
  */
 pub struct GraphPruner<'a> {
     graph: &'a WotGraph,
-    current_paths: Vec<Vec<&'a WotNode>>,
+    found_paths: Vec<Vec<&'a WotNode>>,
+    pruned_cycle_follows: Vec<& 'a WotFollow>,
     start: &'a WotNode,
     visited: Vec<String>
 }
@@ -21,7 +23,8 @@ impl<'a> GraphPruner<'a> {
     pub fn new(graph: &'a WotGraph) -> Self {
         GraphPruner{
             graph,
-            current_paths: vec![],
+            found_paths: vec![],
+            pruned_cycle_follows: vec![],
             start: graph.get_me_node(),
             visited: vec![]
         }
@@ -31,15 +34,21 @@ impl<'a> GraphPruner<'a> {
         // DFS traversal https://www.geeksforgeeks.org/depth-first-search-or-dfs-for-a-graph/
         self.visited.insert(0, current.pubkey.clone());
         if current.pubkey == end.pubkey {
-            self.current_paths.push(current_path.to_vec());
+            self.found_paths.push(current_path.to_vec());
         } else {
             if let Some(follows) = current.get_follows() {
                 for follow in follows {
-                    let target_node = self.graph.get_node(&follow.target_pubkey).unwrap();
-                    if current_path.contains(&target_node) {
-                        // Todo: Remove this cycle
-                        println!("Cycle?");
+                    let is_pruned = self.pruned_cycle_follows.contains(&follow);
+                    if is_pruned {
+                        continue;
                     };
+
+                    let target_node = self.graph.get_node(&follow.target_pubkey).unwrap();
+                    let is_new_cyle = current_path.contains(&target_node);
+                    if is_new_cyle {
+                        self.pruned_cycle_follows.push(follow);
+                    };
+
                     let has_been_visited = self.visited.contains(&target_node.pubkey);
                     if !has_been_visited {
                         current_path.push(target_node);
@@ -59,11 +68,11 @@ impl<'a> GraphPruner<'a> {
             let mut current_path = vec![self.start];
             self.dfs(self.start, &mut current_path, class);
         }
-        self.current_paths.clone()
+        self.found_paths.clone()
     }
 
     pub fn get_found_nodes(&self) -> HashSet<&WotNode> {
-        let set: HashSet<&WotNode> = self.current_paths.iter().map(|path| {
+        let set: HashSet<&WotNode> = self.found_paths.iter().map(|path| {
             let new_path: Vec<&WotNode> = path.iter().map(|node| &**node).collect();
             new_path
         }).flatten().collect();
@@ -81,7 +90,7 @@ impl<'a> GraphPruner<'a> {
 
     pub fn get_found_follows(&self) -> HashSet<&WotFollow> {
         let mut follows: HashSet<&WotFollow> = HashSet::new();
-        for path in self.current_paths.iter() {
+        for path in self.found_paths.iter() {
             for i in 0..path.len()-1 {
                 let source = path[i];
                 let target = path[i+1];
@@ -137,7 +146,7 @@ impl<'a> GraphPruner<'a> {
 
 impl fmt::Display for GraphPruner<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let strs: Vec<String> = self.current_paths.iter().map(|path| {
+        let strs: Vec<String> = self.found_paths.iter().map(|path| {
             let path_str = path.iter().map(|node| node.pubkey.clone()).collect::<Vec<String>>().join(" -> ");
             path_str
         }).collect();
@@ -341,8 +350,8 @@ mod tests {
     #[test]
     fn search_critical_graph() {
         let graph = get_critical_graph();
-        let pruned1 = GraphPruner::prune(&graph);
-        let mut search = GraphPruner::new(&pruned1);
+        // let pruned1 = GraphPruner::prune(&graph);
+        let mut search = GraphPruner::new(&graph);
         let result = search.search_paths();
         println!("{}", search);
 
