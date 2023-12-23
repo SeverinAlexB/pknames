@@ -44,6 +44,42 @@ impl WotNodeType {
             }
         }
     }
+
+    /**
+     * Remove all follows
+     */
+    pub fn clear_follows(&mut self) {
+        match self {
+            WotNodeType::WotClass => {},
+            WotNodeType::WotFollowNode {follows} => {
+                follows.clear();
+            },
+            WotNodeType::WotTempNode { follows } => {
+                follows.clear();
+            }
+        };
+    }
+
+    /**
+     * Extend follows
+     */
+    pub fn extend_follows(&mut self, new_follows: Vec<WotFollow>) {
+        if new_follows.len() == 0 {
+            return;
+        }
+        match self {
+            WotNodeType::WotClass => {
+                panic!("Can't set follows of a WotClass node.")
+            },
+            WotNodeType::WotFollowNode {follows} => {
+                follows.extend(new_follows.into_iter());
+            },
+            WotNodeType::WotTempNode { follows } => {
+                follows.extend(new_follows.into_iter());
+            }
+        };
+    }
+
 }
 
 impl fmt::Display for WotNodeType {

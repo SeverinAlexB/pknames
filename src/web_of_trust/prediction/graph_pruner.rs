@@ -1,18 +1,17 @@
-use std::{collections::HashSet, fmt};
+use std::{collections::{HashSet, HashMap}, fmt};
 
 use super::{graph::WotGraph, node::{WotNode, WotFollow}};
 
-pub struct AllPathSearch<'a> {
+pub struct GraphPruner<'a> {
     graph: &'a WotGraph,
     current_paths: Vec<Vec<&'a WotNode>>,
     start: &'a WotNode,
     visited: Vec<String>
 }
 
-impl<'a> AllPathSearch<'a> {
-
+impl<'a> GraphPruner<'a> {
     pub fn new(graph: &'a WotGraph) -> Self {
-        AllPathSearch{
+        GraphPruner{
             graph,
             current_paths: vec![],
             start: graph.get_me_node(),
@@ -64,7 +63,7 @@ impl<'a> AllPathSearch<'a> {
         let found_nodes = self.get_found_nodes();
 
         let all_nodes = self.graph.get_nodes();
-        let diff = HashSet::from_iter(all_nodes.difference(&found_nodes).into_iter().map(|node| &**node));
+        let diff = HashSet::from_iter(all_nodes.difference(&found_nodes).into_iter().map(|node| *node));
         diff
     }
 
@@ -87,11 +86,37 @@ impl<'a> AllPathSearch<'a> {
         let diff = HashSet::from_iter(all.difference(&found).into_iter().map(|follow| &**follow));
         diff
     }
+
+    pub fn prune(&mut self) -> WotGraph {
+        let follows = self.get_found_follows();
+        let mut map: HashMap<String, Vec<WotFollow>> = HashMap::new();
+
+        for follow in follows.iter() {
+            if !map.contains_key(&follow.source_pubkey) {
+                map.insert(follow.source_pubkey.clone(), vec![]);
+            }
+            let cloned_follow = (*follow).clone();
+            let list = map.get_mut(&follow.source_pubkey).unwrap();
+            list.push(cloned_follow);
+        }
+
+        let nodes: Vec<WotNode> = self.get_found_nodes().iter().map(|original| {
+            let mut node = (*original).clone();
+            if let Some(list) = map.get(&node.pubkey) {
+                let follows = list.clone();
+                node.typ.clear_follows();
+                node.typ.extend_follows(follows);
+            }
+            node
+        }).collect();
+
+        WotGraph::new(nodes).unwrap()
+    }
     
 }
 
 
-impl fmt::Display for AllPathSearch<'_> {
+impl fmt::Display for GraphPruner<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let strs: Vec<String> = self.current_paths.iter().map(|path| {
             let path_str = path.iter().map(|node| node.pubkey.clone()).collect::<Vec<String>>().join(" -> ");
@@ -103,14 +128,12 @@ impl fmt::Display for AllPathSearch<'_> {
 }
 
 
-
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
 
     use super::super::node::{WotNode, WotNodeType, WotFollow};
-    use super::{WotGraph, AllPathSearch};
+    use super::{WotGraph, GraphPruner};
 
     /**
      * Constructs a simple graph
@@ -181,7 +204,7 @@ mod tests {
     #[test]
     fn run() {
         let graph = get_simple_graph();
-        let mut search = AllPathSearch::new(&graph);
+        let mut search = GraphPruner::new(&graph);
         let result = search.run();
         println!("{}", search);
         assert_eq!(result.len(), 4);
@@ -212,6 +235,16 @@ mod tests {
         assert!(missing.contains(&WotFollow::new("n2".to_string(), "n3".to_string(), 0.0).unwrap()));
         assert!(missing.contains(&WotFollow::new("n3".to_string(), "me".to_string(), 0.0).unwrap()));
         assert!(missing.contains(&WotFollow::new("n1".to_string(), "me".to_string(), 0.0).unwrap()));
+    }
+
+    #[test]
+    fn prune() {
+        let graph = get_simple_graph();
+        let mut search = GraphPruner::new(&graph);
+        let result = search.run();
+        let pruned = search.prune();
+        print!("");
+
     }
 
 }

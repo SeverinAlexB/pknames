@@ -103,8 +103,9 @@ impl WotPredictor {
     fn layers_with_temp_nodes(&self) -> Vec<Vec<WotNode>> {
         let mut layers: Vec<Vec<WotNode>> = self.graph.get_layers().iter().map(|layer| {
             let new_layer : Vec<WotNode> = layer.iter().map(|node|  {
-                let cloned: WotNode = node.clone().clone();
-                cloned
+                (*node).clone()
+                // let cloned: WotNode = node.clone().clone();
+                // cloned
             }).collect();
             new_layer
         }).collect();
