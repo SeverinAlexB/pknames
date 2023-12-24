@@ -3,7 +3,7 @@ use std::{collections::{HashSet, HashMap}, fmt};
 use super::{graph::WotGraph, node::{WotNode, WotFollow}};
 
 /**
- * Turns the possibly cyclical Web of Trust graph into an acyclical graph.
+ * Turns the possibly cyclical Web of Trust graph into an acyclical graph and prunes unnecesarry nodes.
  * This is needed to do any calculation.
  * Intuitively, it removes all follows that point back towards the me node. 
  * It also removes all nodes that do not contribute to the classes.
@@ -15,7 +15,6 @@ pub struct GraphPruner<'a> {
     graph: &'a WotGraph,
     found_paths: Vec<Vec<&'a WotNode>>,
     pruned_cycle_follows: Vec<& 'a WotFollow>,
-    start: &'a WotNode,
     visited: Vec<String>
 }
 
@@ -25,9 +24,12 @@ impl<'a> GraphPruner<'a> {
             graph,
             found_paths: vec![],
             pruned_cycle_follows: vec![],
-            start: graph.get_me_node(),
             visited: vec![]
         }
+    }
+
+    fn get_start_node(&self)-> &'a WotNode {
+        self.graph.get_me_node()
     }
 
     fn dfs(&mut self, current: &'a WotNode, current_path: & mut Vec<&'a WotNode>, end: &'a WotNode) {
@@ -63,10 +65,11 @@ impl<'a> GraphPruner<'a> {
     }
 
     fn search_paths(&mut self) -> Vec<Vec<&'a WotNode>> {
+        let start = self.get_start_node();
         let classes = self.graph.get_classes();
         for class in classes.iter() {
-            let mut current_path = vec![self.start];
-            self.dfs(self.start, &mut current_path, class);
+            let mut current_path = vec![start];
+            self.dfs(start, &mut current_path, class);
         }
         self.found_paths.clone()
     }

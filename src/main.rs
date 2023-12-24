@@ -91,6 +91,5 @@ fn main() {
    
     // visualize_graph(wot_graph.clone(), "Original graph");
     let pruned = GraphPruner::prune(&wot_graph);
-    let layers = pruned.get_layers();
     visualize_graph(pruned.clone(), "Pruned graph");
 }
