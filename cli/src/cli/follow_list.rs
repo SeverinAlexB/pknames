@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use fancyd_wot::prediction::{node::{WotNode, WotNodeType}, graph::WotGraph};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -38,6 +41,14 @@ impl FollowList {
         }
     }
 
+    pub fn target_domains(&self) -> Vec<&Follow> {
+        self.follows.iter().filter(|f| f.domain().is_some()).collect()
+    }
+
+    pub fn target_lists(&self) -> Vec<&Follow> {
+        self.follows.iter().filter(|f| f.domain().is_none()).collect()
+    }
+
     pub fn to_json(&self) -> String {
         serde_json::to_string_pretty(&self).unwrap()
     }
@@ -46,7 +57,36 @@ impl FollowList {
         let l: Result<FollowList, serde_json::Error> = serde_json::from_str(json);
         l
     }
+
+    // pub fn into_wot_graph(lists: Vec<Self>) -> WotGraph {
+    //     // What happens if two people announce the same pubkey but they claim it is a different domain?
+    //     let all: Vec<&Follow> = lists.iter().map(|list| &list.follows).flatten().collect();
+    //     let domains: Vec<&Follow> = all.iter().filter_map(|follow| {
+    //         if follow.domain().is_some() {
+    //             Some(*follow)
+    //         } else {
+    //             None
+    //         }
+    //     }).collect();
+
+    //     let lists = all.iter().filter_map(|follow| {
+    //         if follow.domain().is_none() {
+    //             Some(*follow)
+    //         } else {
+    //             None
+    //         }
+    //     }).collect();
+
+    //     let class_nodes: HashMap<String, WotNode> = HashMap::new();
+    //     for domain in domains.into_iter() {
+    //         let node: WotNode = (*domain).into();
+            
+    //     };
+
+
+    // }
 }
+
 
 #[derive(Serialize, Deserialize)]
 pub struct Follow(
@@ -93,6 +133,29 @@ impl Follow {
 
     pub fn domain(&self) -> &Option<String> {
         &self.3
+    }
+
+    pub fn domain_id(&self) -> Option<String> {
+        if let Some(domain) = self.domain() {
+            Some(format!("{}-{}", self.pubkey(), domain))
+        } else {
+            None
+        }
+
+    }
+}
+
+impl Into<WotNode> for Follow {
+    fn into(self) -> WotNode {
+        let typ = match self.domain() {
+            Some(domain) => WotNodeType::WotClass,
+            None => WotNodeType::WotFollowNode { follows: vec![] }
+        };
+        WotNode {
+            pubkey: self.0,
+            alias: Some(self.2),
+            typ
+        }
     }
 }
 

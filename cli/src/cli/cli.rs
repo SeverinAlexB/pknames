@@ -21,7 +21,8 @@ pub fn run_cli() {
         )
         .subcommand(
             clap::Command::new("ls")
-            .about("List your follow lists."),
+            .about("List your follow lists.")
+            .arg(clap::Arg::new("gui").short('g').long("gui").required(false).num_args(0).help("Show follows in a gui frame."))
         ).subcommand(
             clap::Command::new("getinfo")
             .about("General information."),
