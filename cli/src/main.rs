@@ -1,7 +1,6 @@
 use cli::cli::run_cli;
-use web_of_trust::{prediction::{graph::WotGraph, node::{WotNodeType, WotFollow, WotNode}, graph_pruner::GraphPruner}, visualization::visualize_graph};
+use fancyd_wot::{prediction::{graph::WotGraph, node::{WotNode, WotNodeType, WotFollow}, graph_pruner::GraphPruner}, visualization::visualize_graph};
 
-mod web_of_trust;
 mod cli;
 
 // fn main() {

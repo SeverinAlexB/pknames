@@ -72,7 +72,7 @@ impl Follow {
 
 #[cfg(test)]
 mod tests {
-    use crate::web_of_trust::follow_list::{Follow, FollowList};
+    use crate::follow_list::{FollowList, Follow};
 
     #[test]
     fn to_json_and_back() {

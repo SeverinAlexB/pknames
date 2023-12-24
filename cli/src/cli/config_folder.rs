@@ -1,7 +1,6 @@
-use crate::web_of_trust::follow_list::FollowList;
-use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
+use fancyd_wot::follow_list::FollowList;
 
 pub struct ConfigFolder {
     pub path: PathBuf,
@@ -137,7 +136,7 @@ impl ConfigFolder {
 
 #[cfg(test)]
 mod tests {
-    use crate::web_of_trust::follow_list::{Follow, FollowList};
+    use fancyd_wot::follow_list::{Follow, FollowList};
 
     use super::ConfigFolder;
 
