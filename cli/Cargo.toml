@@ -11,3 +11,5 @@ serde_json = "1.0.108"
 shellexpand = "3.1.0"
 
 fancyd_wot = { path = "../web_of_trust"}
+pkarr = "1.0.1"
+zbase32 = "0.1.2"

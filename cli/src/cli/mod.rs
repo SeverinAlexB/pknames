@@ -1,4 +1,4 @@
 pub mod cli;
-mod config_folder;
+mod config_directory;
 mod commands;
 mod follow_list;

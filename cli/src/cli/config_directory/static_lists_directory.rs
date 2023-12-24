@@ -1,46 +1,26 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
-use super::follow_list::FollowList;
+use crate::cli::follow_list::FollowList;
 
 
-pub struct ConfigFolder {
+pub struct StaticListsDirectory {
     pub path: PathBuf,
 }
 
-impl ConfigFolder {
+impl StaticListsDirectory {
     /**
      * Creates new ConfigFolder.
      */
     pub fn new(path: PathBuf) -> Self {
-        ConfigFolder { path }
+        StaticListsDirectory { path }
     }
 
     /**
-     * Creates new ConfigFolder.
+     * Creates the directory if it does not exist.
      */
-    pub fn new_by_string(path: &str) -> Self {
-        let expanded = shellexpand::tilde(path);
-        let full_path: String = expanded.into();
-
-        let path = Path::new(&full_path);
-        let path_buf = PathBuf::from(path);
-        ConfigFolder::new(path_buf)
-    }
-
-    /**
-     * Path to the list folder.
-     */
-    pub fn get_lists_path(&self) -> PathBuf {
-        let mut main_path = self.path.clone().into_os_string();
-        main_path.push("/lists");
-        let lists_path: PathBuf = main_path.into();
-        lists_path
-    }
-
-    fn create_lists_dir_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
-        let path = self.get_lists_path();
-        if path.exists() {
+    pub fn create_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
+        if self.path.exists() {
             if self.path.is_dir() {
                 return Ok(());
             } else {
@@ -51,53 +31,7 @@ impl ConfigFolder {
             }
         };
         // Create dir
-        fs::create_dir(&path)
-    }
-
-    /**
-     * Creates the directory if it does not exist. At least given parent folder of `path` must exist otherwise it will throw an error.
-     */
-    fn create_main_dir_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
-        if self.path.exists() {
-            if self.path.is_dir() {
-                return Ok(());
-            } else {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "Not found",
-                ));
-            }
-        };
-
-        // Folder does not exist. Let's check if we can create the folder in the parent directory.
-        let parent = self.path.parent();
-        if parent.is_none() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "Not found",
-            ));
-        };
-        let parent_buf = PathBuf::from(parent.unwrap());
-        if !parent_buf.exists() {
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                "Not found",
-            ));
-        };
-        // Create main
-        fs::create_dir(&self.path)?;
-
-        // Create lists dir
-        let list_path = self.get_lists_path();
-        fs::create_dir(&list_path)
-    }
-
-    /**
-     * Creates the directory if it does not exist. At least given parent folder of `path` must exist otherwise it will throw an error.
-     */
-    pub fn create_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
-        self.create_main_dir_if_it_does_not_exist()?;
-        self.create_lists_dir_if_it_does_not_exist()
+        fs::create_dir(&self.path)
     }
 
     /**
@@ -129,7 +63,7 @@ impl ConfigFolder {
     }
 
     pub fn read_lists(&self) -> Result<Vec<Result<FollowList, String>>, std::io::Error> {
-        let paths = fs::read_dir(self.get_lists_path())?;
+        let paths = fs::read_dir(&self.path)?;
 
         let paths: Vec<PathBuf> = paths
             .map(|entry| {
@@ -174,25 +108,14 @@ impl ConfigFolder {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
     use crate::cli::follow_list::{FollowList, Follow};
+    use super::StaticListsDirectory;
 
-    use super::ConfigFolder;
-
-    #[test]
-    fn create_if_it_does_not_exist() {
-        let config = ConfigFolder::new_by_string("/tmp/fancydns827209438");
-        let _ = config.delete(); // Delete so the test can work again even though it failed before.
-        assert_eq!(config.path.exists(), false);
-        let result = config.create_if_it_does_not_exist();
-        assert!(result.is_ok());
-        assert_eq!(config.path.exists(), true);
-        config.delete().unwrap();
-        assert_eq!(config.path.exists(), false);
-    }
 
     #[test]
     fn read_lists() {
-        let config = ConfigFolder::new_by_string("/tmp/fancydns827209438");
+        let config = StaticListsDirectory::new(PathBuf::from("/tmp/fancydns827209438/static_lists"));
         let _ = config.delete(); // Delete so the test can work again even though it failed before.
         let _ = config.create_if_it_does_not_exist();
 
@@ -218,7 +141,7 @@ mod tests {
         );
 
         let json = list.to_json();
-        let mut path = config.get_lists_path();
+        let mut path = config.path.clone();
         path.push("myList.json");
         std::fs::write(path, json).unwrap();
 

@@ -3,6 +3,8 @@ use clap::ArgMatches;
 use crate::cli::commands::{lookup::cli_lookup, ls::cli_ls};
 use std::path::{PathBuf, Path};
 
+use super::commands::getinfo::cli_getinfo;
+
 /**
  * Main cli entry function.
  */
@@ -20,6 +22,9 @@ pub fn run_cli() {
         .subcommand(
             clap::Command::new("ls")
             .about("List your follow lists."),
+        ).subcommand(
+            clap::Command::new("getinfo")
+            .about("General information."),
         );
     let matches = cmd.get_matches();
     let verbose: bool = *matches.get_one("verbose").unwrap();
@@ -41,6 +46,9 @@ pub fn run_cli() {
         },
         Some(("lookup", matches)) => {
             cli_lookup(matches, folder_buf, verbose);
+        },
+        Some(("getinfo", matches)) => {
+            cli_getinfo(matches, folder_buf, verbose);
         },
         _ => {
             // Default command
