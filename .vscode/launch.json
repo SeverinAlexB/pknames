@@ -11,18 +11,17 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=fancydns-rust",
-                    "--package=fancydns-rust"
+                    "--bin=fancyd-cli",
+                    "--package=fancyd-cli"
                 ],
                 "filter": {
-                    "name": "fancydns-rust",
+                    "name": "fancyd-cli",
                     "kind": "bin"
                 }
             },
             "args": [
                 "--verbose",
-                "lookup",
-                "example.com"
+                "ls",
             ],
             "cwd": "${workspaceFolder}"
         },

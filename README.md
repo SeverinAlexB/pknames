@@ -10,6 +10,7 @@ An experimental Web of Trust (WoT) library. WIP.
 - [x] Graph pruning
 - [x] Transform cyclical graph to acyclical.
 - [ ] CLI for a petname example use case.
+- [ ] ICANN DNS fallback
 - [ ] Reseach gameability
     - [ ] Graph cycle removal abuse
     - [ ] Distrust abuse

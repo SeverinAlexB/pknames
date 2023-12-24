@@ -2,16 +2,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct FollowList {
-    pubkey: String,
-    alias: Option<String>,
-    follows: Vec<Follow>,
+    pub pubkey: String,
+    pub alias: Option<String>,
+    pub follows: Vec<Follow>,
 }
 
 impl std::fmt::Display for FollowList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut name = self.pubkey.clone();
         if let Some(alias) = self.alias.clone() {
-            name = format!("{} {}", alias, name);
+            name = format!("{} ({})", name, alias);
         }
         let follow_strings: Vec<String> = self
             .follows
@@ -49,30 +49,57 @@ impl FollowList {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Follow(String, f32, Option<String>);
+pub struct Follow(
+    String, // pubkey
+    f32, // weight
+    String, // alias 
+    Option<String> // domain
+);
 
 impl std::fmt::Display for Follow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut name = self.0.clone();
-        if let Some(alias) = self.2.clone() {
-            name = format!("{} {}", alias, name);
-        }
-        write!(f, "{}: {}", name, self.1)
+        let emoji = match self.domain() {
+            Some(_) => "🅰️ ",
+            None => "📃"
+        };
+        let mut name = format!("{} {}", emoji, self.pubkey());
+
+        if self.alias().len() > 0 {
+            name = format!("{} ({})", name, self.alias());
+        };
+        if let Some(domain) = self.domain() {
+            name = format!("{} {}", name, domain);
+        };
+        write!(f, "{} {}", name, self.1)
     }
 }
 
 impl Follow {
-    pub fn new(target_pubkey: String, weight: f32, alias: Option<String>) -> Result<Self, &'static str> {
-        if weight > 1.0 || weight < -1.0 {
-            return Err("Weight not in range of -1.0 to 1.0.");
-        }
-        Ok(Follow(target_pubkey, weight, alias))
+    pub fn new(target_pubkey: String, weight: f32, alias: String, domain: Option<String>) -> Result<Self, &'static str> {
+        Ok(Follow(target_pubkey, weight, alias, domain))
+    }
+
+    pub fn pubkey(&self) -> &String {
+        &self.0
+    }
+
+    pub fn weight(&self) -> &f32 {
+        &self.1
+    }
+
+    pub fn alias(&self) -> &str {
+        &self.2
+    }
+
+    pub fn domain(&self) -> &Option<String> {
+        &self.3
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::follow_list::{FollowList, Follow};
+    use crate::cli::follow_list::{FollowList, Follow};
+
 
     #[test]
     fn to_json_and_back() {
@@ -80,8 +107,8 @@ mod tests {
             "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
             Some("myList".to_string()),
             vec![
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, None).unwrap(),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com".to_string())).unwrap()
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, "".to_string(), None).unwrap(),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, "".to_string(), Some("example.com".to_string())).unwrap()
             ],
         );
 
@@ -99,11 +126,13 @@ mod tests {
               [
                 "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
                 0.33333334,
+                "",
                 null
               ],
               [
                 "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy",
                 -1.0,
+                "",
                 "example.com"
               ]
             ]
