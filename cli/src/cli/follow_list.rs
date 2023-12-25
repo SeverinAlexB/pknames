@@ -58,33 +58,31 @@ impl FollowList {
         l
     }
 
-    // pub fn into_wot_graph(lists: Vec<Self>) -> WotGraph {
-    //     // What happens if two people announce the same pubkey but they claim it is a different domain?
-    //     let all: Vec<&Follow> = lists.iter().map(|list| &list.follows).flatten().collect();
-    //     let domains: Vec<&Follow> = all.iter().filter_map(|follow| {
-    //         if follow.domain().is_some() {
-    //             Some(*follow)
-    //         } else {
-    //             None
-    //         }
-    //     }).collect();
+    pub fn into_wot_graph(lists: Vec<Self>) -> WotGraph {
+        // What happens if two people announce the same pubkey but they claim it is a different domain?
+        let all: Vec<&Follow> = lists.iter().map(|list| &list.follows).flatten().collect();
+        let domains: Vec<&Follow> = all.iter().filter_map(|follow| {
+            if follow.domain().is_some() {
+                Some(*follow)
+            } else {
+                None
+            }
+        }).collect();
 
-    //     let lists = all.iter().filter_map(|follow| {
-    //         if follow.domain().is_none() {
-    //             Some(*follow)
-    //         } else {
-    //             None
-    //         }
-    //     }).collect();
+        let lists = all.iter().filter_map(|follow| {
+            if follow.domain().is_none() {
+                Some(*follow)
+            } else {
+                None
+            }
+        }).collect();
 
-    //     let class_nodes: HashMap<String, WotNode> = HashMap::new();
-    //     for domain in domains.into_iter() {
-    //         let node: WotNode = (*domain).into();
+        let class_nodes: HashMap<String, WotNode> = HashMap::new();
+        for domain in domains.into_iter() {
+            let node: WotNode = (*domain).into();
             
-    //     };
-
-
-    // }
+        };
+    }
 }
 
 
@@ -153,7 +151,7 @@ impl Into<WotNode> for Follow {
         };
         WotNode {
             pubkey: self.0,
-            alias: Some(self.2),
+            alias: self.2,
             typ
         }
     }

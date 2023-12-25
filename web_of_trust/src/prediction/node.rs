@@ -111,21 +111,22 @@ impl fmt::Display for WotNodeType {
 #[derive(Debug, Clone)]
 pub struct WotNode {
     pub pubkey: String,
-    pub alias: Option<String>,
+    pub alias: String,
     pub typ: WotNodeType
 }
 
 impl fmt::Display for WotNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut name = self.pubkey.clone();
-        if let Some(alias) = self.alias.clone() {
-            name = format!("{} ({})",alias, name);
+        if self.alias.len() > 0 {
+            name = format!("{} ({})", self.alias, name);
         }
         write!(f, "{} {}", name, self.typ)
     }
 }
 
 impl WotNode {
+
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
         let follows = self.typ.get_follows()?;
         let found = follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
@@ -238,22 +239,22 @@ mod tests {
         let mut list = vec![
             WotNode {
                 pubkey: "c".to_string(),
-                alias: None,
+                alias: "".to_string(),
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
             WotNode {
                 pubkey: "b".to_string(),
-                alias: None,
+                alias: "".to_string(),
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
             WotNode {
                 pubkey: "a".to_string(),
-                alias: None,
+                alias: "".to_string(),
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
             WotNode {
                 pubkey: "d".to_string(),
-                alias: None,
+                alias: "".to_string(),
                 typ: WotNodeType::WotFollowNode { follows: vec![] }
             },
         ];
@@ -272,7 +273,7 @@ mod tests {
         let pubkey = String::from("923jladsf");
         let node = WotNode {
             pubkey: pubkey.clone(),
-            alias: Some("me".to_string()),
+            alias: "me".to_string(),
             typ: WotNodeType::WotFollowNode { follows: vec![
                 WotFollow {
                     source_pubkey: String::from("hello"),
