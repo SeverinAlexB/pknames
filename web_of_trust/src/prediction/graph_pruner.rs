@@ -11,15 +11,15 @@ use super::{graph::WotGraph, node::{WotNode, WotFollow}};
  * Todo: Research if this type of pruning cycles can be abused to influence the web of trust.
  * https://github.com/zhenv5/breaking_cycles_in_noisy_hierarchies
  */
-pub struct GraphPruner<'a> {
-    graph: &'a WotGraph,
-    found_paths: Vec<Vec<&'a WotNode>>,
+pub struct GraphPruner<'a, F, C> where F: Clone, C:Clone{
+    graph: &'a WotGraph<F, C>,
+    found_paths: Vec<Vec<&'a WotNode<F, C>>>,
     pruned_cycle_follows: Vec<& 'a WotFollow>,
     visited: Vec<String>
 }
 
-impl<'a> GraphPruner<'a> {
-    pub fn new(graph: &'a WotGraph) -> Self {
+impl<'a, F, C> GraphPruner<'a, F, C> where F: Clone, C:Clone {
+    pub fn new(graph: &'a WotGraph<F, C>) -> Self {
         GraphPruner{
             graph,
             found_paths: vec![],
@@ -28,11 +28,11 @@ impl<'a> GraphPruner<'a> {
         }
     }
 
-    fn get_start_node(&self)-> &'a WotNode {
+    fn get_start_node(&self)-> &'a WotNode<F, C> {
         self.graph.get_me_node()
     }
 
-    fn dfs(&mut self, current: &'a WotNode, current_path: & mut Vec<&'a WotNode>, end: &'a WotNode) {
+    fn dfs(&mut self, current: &'a WotNode<F, C>, current_path: & mut Vec<&'a WotNode<F, C>>, end: &'a WotNode<F, C>) {
         // DFS traversal https://www.geeksforgeeks.org/depth-first-search-or-dfs-for-a-graph/
         self.visited.insert(0, current.pubkey.clone());
         if current.pubkey == end.pubkey {
@@ -64,7 +64,7 @@ impl<'a> GraphPruner<'a> {
         self.visited.remove(visited_index);
     }
 
-    fn search_paths(&mut self) -> Vec<Vec<&'a WotNode>> {
+    fn search_paths(&mut self) -> Vec<Vec<&'a WotNode<F, C>>> {
         let start = self.get_start_node();
         let classes = self.graph.get_classes();
         for class in classes.iter() {
@@ -74,16 +74,16 @@ impl<'a> GraphPruner<'a> {
         self.found_paths.clone()
     }
 
-    pub fn get_found_nodes(&self) -> HashSet<&WotNode> {
-        let set: HashSet<&WotNode> = self.found_paths.iter().map(|path| {
-            let new_path: Vec<&WotNode> = path.iter().map(|node| &**node).collect();
+    pub fn get_found_nodes(&self) -> HashSet<&WotNode<F, C>> {
+        let set: HashSet<&WotNode<F, C>> = self.found_paths.iter().map(|path| {
+            let new_path: Vec<&WotNode<F, C>> = path.iter().map(|node| &**node).collect();
             new_path
         }).flatten().collect();
         set
         
     }
 
-    pub fn get_missing_nodes(&self) -> HashSet<&WotNode> {
+    pub fn get_missing_nodes(&self) -> HashSet<&WotNode<F, C>> {
         let found_nodes = self.get_found_nodes();
 
         let all_nodes = self.graph.get_nodes();
@@ -111,7 +111,7 @@ impl<'a> GraphPruner<'a> {
         diff
     }
 
-    pub fn clone_and_prune(&mut self) -> WotGraph {
+    pub fn clone_and_prune(&mut self) -> WotGraph<F, C> {
         let follows = self.get_found_follows();
         let mut map: HashMap<String, Vec<WotFollow>> = HashMap::new();
 
@@ -124,7 +124,7 @@ impl<'a> GraphPruner<'a> {
             list.push(cloned_follow);
         }
 
-        let nodes: Vec<WotNode> = self.get_found_nodes().iter().map(|original| {
+        let nodes: Vec<WotNode<F, C>> = self.get_found_nodes().iter().map(|original| {
             let mut node = (*original).clone();
             if let Some(list) = map.get(&node.pubkey) {
                 let follows = list.clone();
@@ -137,7 +137,7 @@ impl<'a> GraphPruner<'a> {
         WotGraph::new(nodes).unwrap()
     }
 
-    pub fn prune(graph: &WotGraph) -> WotGraph {
+    pub fn prune(graph: &WotGraph<F, C>) -> WotGraph<F, C> {
         let mut pruner = GraphPruner::new(graph);
         pruner.search_paths();
         let pruned = pruner.clone_and_prune();
@@ -147,7 +147,7 @@ impl<'a> GraphPruner<'a> {
 }
 
 
-impl fmt::Display for GraphPruner<'_> {
+impl<F, C> fmt::Display for GraphPruner<'_, F, C>  where F: Clone, C:Clone{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let strs: Vec<String> = self.found_paths.iter().map(|path| {
             let path_str = path.iter().map(|node| node.pubkey.clone()).collect::<Vec<String>>().join(" -> ");
@@ -169,19 +169,19 @@ mod tests {
     /**
      * Constructs a simple graph
      */
-    fn get_simple_graph() -> WotGraph {
-        let mut nodes: Vec<WotNode> = Vec::new();
+    fn get_simple_graph() -> WotGraph<(), ()> {
+        let mut nodes: Vec<WotNode<(), ()>> = Vec::new();
 
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass,
+            typ: WotNodeType::WotClass{data: ()},
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass,
+            typ: WotNodeType::WotClass{data: ()},
         });
 
         nodes.push(WotNode {
@@ -193,6 +193,7 @@ mod tests {
                     WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap(),
                     WotFollow::new("n2".to_string(), "n3".to_string(), -1.0).unwrap(),
                 ],
+                data: ()
             },
         });
 
@@ -205,6 +206,7 @@ mod tests {
                     WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap(),
                     WotFollow::new("n1".to_string(), "me".to_string(), 0.0).unwrap()
                 ],
+                data: ()
             },
         });
 
@@ -215,6 +217,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("n3".to_string(), "me".to_string(), -0.5).unwrap(),
                 ],
+                data: ()
             },
         });
 
@@ -226,6 +229,7 @@ mod tests {
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
                     WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
                 ],
+                data: ()
             },
         });
 
@@ -233,22 +237,20 @@ mod tests {
     }
     
 
-    fn get_critical_graph() -> WotGraph {
-        let mut nodes: Vec<WotNode> = Vec::new();
+    fn get_critical_graph() -> WotGraph<(), ()> {
+        let mut nodes: Vec<WotNode<(), ()>> = Vec::new();
 
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass,
+            typ: WotNodeType::WotClass{data: ()},
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass,
+            typ: WotNodeType::WotClass{data: ()},
         });
-
-
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
@@ -257,6 +259,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "n4".to_string(), -0.5).unwrap(),
                 ],
+                data: ()
             },
         });
 
@@ -267,6 +270,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("n2".to_string(), "n3".to_string(), 1.0).unwrap(),
                 ],
+                data: ()
             },
         });
 
@@ -278,6 +282,7 @@ mod tests {
                     WotFollow::new("n3".to_string(), "d2".to_string(), -0.5).unwrap(),
                     WotFollow::new("n3".to_string(), "n1".to_string(), -0.5).unwrap(),
                 ],
+                data: ()
             },
         });
 
@@ -289,6 +294,7 @@ mod tests {
                     WotFollow::new("n4".to_string(), "d1".to_string(), -0.5).unwrap(),
                     WotFollow::new("n4".to_string(), "n2".to_string(), -0.5).unwrap(),
                 ],
+                data: ()
             },
         });
 
@@ -300,6 +306,7 @@ mod tests {
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
                     WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
                 ],
+                data: ()
             },
         });
 
