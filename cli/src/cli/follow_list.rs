@@ -143,20 +143,15 @@ impl Follow {
     }
 }
 
-impl Into<WotNode> for Follow {
-    fn into(self) -> WotNode {
-        let typ = match self.domain() {
-            Some(domain) => WotNodeType::WotClass,
-            None => WotNodeType::WotFollowNode { follows: vec![] }
-        };
-        WotNode {
-            pubkey: self.0,
-            alias: self.2,
-            typ,
-            data: ()
-        }
-    }
-}
+// impl Into<WotNode<(), ()> for Follow {
+//     fn into(self) -> WotNode<(), ()> {
+//         if self.domain().is_some() {
+//             WotNode::new_class(self.0, self.2, ())
+//         } else {
+//             WotNode::new_list(self.0, self.2, vec![], ())
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
