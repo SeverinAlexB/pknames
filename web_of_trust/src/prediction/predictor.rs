@@ -37,11 +37,11 @@ impl WotPredictionResult {
 }
 
 
-pub struct WotPredictor<F, C> where F: Clone, C: Clone {
-    pub graph: WotGraph<F, C>
+pub struct WotPredictor {
+    pub graph: WotGraph
 }
 
-impl<F, C> WotPredictor<F, C> where F: Clone, C: Clone {
+impl WotPredictor {
 
     /**
      * Predict the probability of the classes.
@@ -100,9 +100,9 @@ impl<F, C> WotPredictor<F, C> where F: Clone, C: Clone {
         self.set_ff_weights(weights);
     }
 
-    fn layers_with_temp_nodes(&self) -> Vec<Vec<WotNode<F, C>>> {
-        let mut layers: Vec<Vec<WotNode<F, C>>> = self.graph.get_layers().iter().map(|layer| {
-            let new_layer : Vec<WotNode<F, C>> = layer.iter().map(|node|  {
+    fn layers_with_temp_nodes(&self) -> Vec<Vec<WotNode>> {
+        let mut layers: Vec<Vec<WotNode>> = self.graph.get_layers().iter().map(|layer| {
+            let new_layer : Vec<WotNode> = layer.iter().map(|node|  {
                 let cloned = (*node).clone();
                 cloned
             }).collect();
@@ -137,7 +137,7 @@ impl<F, C> WotPredictor<F, C> where F: Clone, C: Clone {
         layers
     }
 
-    fn two_layers_to_weights(&self, previous_layer: &Vec<WotNode<F, C>>, current_layer: &Vec<WotNode<F, C>>) -> Data<f32, 2> {
+    fn two_layers_to_weights(&self, previous_layer: &Vec<WotNode>, current_layer: &Vec<WotNode>) -> Data<f32, 2> {
         let is_last_layer = if let WotNodeType::WotClass{..} = current_layer[0].clone().typ {
             true
         } else {
@@ -214,8 +214,8 @@ impl<F, C> WotPredictor<F, C> where F: Clone, C: Clone {
 
 }
 
-impl<F, C> From<WotGraph<F, C>> for WotPredictor<F, C> where F: Clone, C:Clone {
-    fn from(value: WotGraph<F, C>) -> Self {
+impl From<WotGraph> for WotPredictor {
+    fn from(value: WotGraph) -> Self {
         WotPredictor { graph: value }
     }
 }
@@ -234,19 +234,19 @@ mod tests {
     /**
      * Constructs a simple graph
      */
-    fn get_simple_graph() -> WotGraph<(), ()> {
-        let mut nodes: Vec<WotNode<(), ()>> = Vec::new();
+    fn get_simple_graph() -> WotGraph {
+        let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{data: ()},
+            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{data: ()},
+            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
         });
 
         nodes.push(WotNode {
@@ -256,8 +256,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
                     WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap()
-                ],
-                data: ()
+                ]
             },
         });
 
@@ -268,8 +267,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
                     WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()
-                ],
-                data: ()
+                ]
             },
         });
 
@@ -280,27 +278,26 @@ mod tests {
                 follows: vec![
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
                     WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
-                ],
-                data: ()
+                ]
             },
         });
 
         WotGraph::new(nodes).unwrap()
     }
 
-    fn get_complex_graph() -> WotGraph<(), ()> {
-        let mut nodes: Vec<WotNode<(), ()>> = Vec::new();
+    fn get_complex_graph() -> WotGraph {
+        let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{data: ()},
+            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{data: ()},
+            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
         });
 
         nodes.push(WotNode {
@@ -310,8 +307,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "d1".to_string(), 1.0).unwrap(),
                     WotFollow::new("n1".to_string(), "d2".to_string(), 1.0).unwrap()
-                ],
-                data: ()
+                ]
             },
         });
 
@@ -321,8 +317,7 @@ mod tests {
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap()
-                ],
-                data: ()
+                ]
             },
         });
 
@@ -332,8 +327,7 @@ mod tests {
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
                     WotFollow::new("n1".to_string(), "n3".to_string(), 1.0).unwrap(),
-                ],
-                data: ()
+                ]
             },
         });
 
@@ -344,8 +338,7 @@ mod tests {
                 follows: vec![
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
                     WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
-                ],
-                data: ()
+                ]
             },
         });
 
@@ -354,9 +347,9 @@ mod tests {
 
     #[test]
     fn from_into_graph() {
-        let old_graph: WotGraph<(), ()> = get_simple_graph();
-        let predictor: WotPredictor<(), ()> = old_graph.clone().into();
-        let new_graph: WotGraph<(), ()> = predictor.into();
+        let old_graph: WotGraph = get_simple_graph();
+        let predictor: WotPredictor = old_graph.clone().into();
+        let new_graph: WotGraph = predictor.into();
 
         assert_eq!(old_graph.depth(), new_graph.depth());
         assert_eq!(old_graph.nodes.len(), new_graph.nodes.len());
@@ -365,7 +358,7 @@ mod tests {
     #[test]
     fn temp_nodes_layers() {
         let graph = get_complex_graph();
-        let predictor: WotPredictor<(), ()> = graph.into();
+        let predictor: WotPredictor = graph.into();
 
         let layers = predictor.layers_with_temp_nodes();
         assert_eq!(layers.len(), 4);
@@ -378,7 +371,7 @@ mod tests {
     #[test]
     fn predict_simple() {
         let graph = get_simple_graph();
-        let predictor: WotPredictor<(), ()> = graph.into();
+        let predictor: WotPredictor = graph.into();
         let result = predictor.predict();
         assert_eq!(result.get_value("d1").unwrap(), 0.81757444);
         assert_eq!(result.get_value("d2").unwrap(), 0.18242551);
@@ -387,7 +380,7 @@ mod tests {
     #[test]
     fn predict_complex() {
         let graph = get_complex_graph();
-        let predictor: WotPredictor<(), ()> = graph.into();
+        let predictor: WotPredictor = graph.into();
         let result = predictor.predict();
 
         assert_eq!(result.get_value("me").unwrap(), 1.0);
@@ -401,7 +394,7 @@ mod tests {
     #[test]
     fn train_simple() {
         let graph = get_simple_graph();
-        let mut predictor: WotPredictor<(), ()> = graph.into();
+        let mut predictor: WotPredictor = graph.into();
         predictor.train("d2", vec![0.1, 1.0]);
         let new_weights = predictor.get_ff_weights();
         assert_approx_eq!(new_weights[1].value[0], 1.0, 0.1);
@@ -415,9 +408,9 @@ mod tests {
     #[test]
     fn train_back_to_graph() {
         let graph = get_simple_graph();
-        let mut predictor: WotPredictor<(), ()> = graph.into();
+        let mut predictor: WotPredictor = graph.into();
         predictor.train("d2", vec![0.1, 1.0]);
-        let updated: WotGraph<(), ()> = predictor.into();
+        let updated: WotGraph = predictor.into();
         
     }
 }

@@ -2,11 +2,11 @@ use super::{node::{WotNode, WotFollow, WotNodeType}, predictor::WotPredictor};
 use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone)]
-pub struct WotGraph<F, C> where F: Clone, C:Clone {
-    pub nodes: Vec<WotNode<F, C>>
+pub struct WotGraph {
+    pub nodes: Vec<WotNode>
 }
 
-impl<F, C> fmt::Display for WotGraph<F, C> where F: Clone, C:Clone {
+impl fmt::Display for WotGraph {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let layers = self.get_layers();
 
@@ -22,8 +22,8 @@ impl<F, C> fmt::Display for WotGraph<F, C> where F: Clone, C:Clone {
 }
 
 
-impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
-    pub fn new(mut nodes: Vec<WotNode<F, C>>) -> Result<Self, &'static str> {
+impl WotGraph {
+    pub fn new(mut nodes: Vec<WotNode>) -> Result<Self, &'static str> {
         nodes.sort_unstable_by_key(|node| node.pubkey.clone());
         let graph = WotGraph { nodes };
 
@@ -79,7 +79,7 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
     /**
      * Get all nodes
      */
-    pub fn get_nodes(&self) -> HashSet<&WotNode<F, C>> {
+    pub fn get_nodes(&self) -> HashSet<&WotNode> {
         HashSet::from_iter(self.nodes.iter())
     }
 
@@ -102,14 +102,14 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
     /**
      * Find node by pubkey
      */
-    pub fn get_node(&self, pubkey: &str) -> Option<&WotNode<F, C>> {
+    pub fn get_node(&self, pubkey: &str) -> Option<&WotNode> {
         WotNode::binary_search(pubkey, &self.nodes)
     }
 
     /**
      * Returns the me node. Panics if not found.
      */
-    pub fn get_me_node(&self) -> &WotNode<F, C> {
+    pub fn get_me_node(&self) -> &WotNode {
         let me = self.get_node("me");
         match me {
             None => panic!("Me node is missing in this graph."),
@@ -117,8 +117,8 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
         }
     }
 
-    pub fn get_classes(&self) -> Vec<&WotNode<F, C>> {
-        let result: Vec<&WotNode<F, C>> = self.nodes.iter().filter(|n| {
+    pub fn get_classes(&self) -> Vec<&WotNode> {
+        let result: Vec<&WotNode> = self.nodes.iter().filter(|n| {
             if let WotNodeType::WotClass{..} = n.typ {
                 true
             } else {
@@ -128,8 +128,8 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
         result
     }
 
-    pub fn get_follow_nodes(&self) -> Vec<&WotNode<F, C>> {
-        let result: Vec<&WotNode<F, C>> = self.nodes.iter().filter(|n| {
+    pub fn get_follow_nodes(&self) -> Vec<&WotNode> {
+        let result: Vec<&WotNode> = self.nodes.iter().filter(|n| {
             if let WotNodeType::WotFollowNode { .. } = n.typ {
                 true
             } else {
@@ -142,9 +142,9 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
     /**
      * Layers of WotNodes. Last: WotClass(es)
      */
-    pub fn get_layers(&self) -> Vec<Vec<&WotNode<F, C>>> {
-        let mut remaining_nodes: Vec<&WotNode<F, C>> = self.nodes.iter().collect();
-        let mut layers: Vec<Vec<&WotNode<F, C>>> = Vec::new();
+    pub fn get_layers(&self) -> Vec<Vec<&WotNode>> {
+        let mut remaining_nodes: Vec<&WotNode> = self.nodes.iter().collect();
+        let mut layers: Vec<Vec<&WotNode>> = Vec::new();
 
         loop {
             if remaining_nodes.len() == 0 {
@@ -152,7 +152,7 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
             };
 
             // Find leaf nodes
-            let mut current_layer: Vec<&WotNode<F, C>> = Vec::new();
+            let mut current_layer: Vec<&WotNode> = Vec::new();
             for node in remaining_nodes.iter() {
                 let is_leaf_node;
                 let follows = node.get_follows();
@@ -192,8 +192,8 @@ impl<F, C> WotGraph<F, C> where F: Clone, C:Clone{
     }
 }
 
-impl<F, C> From<WotPredictor<F, C>> for WotGraph<F, C> where F: Clone, C:Clone {
-    fn from(value: WotPredictor<F, C>) -> Self {
+impl From<WotPredictor> for WotGraph {
+    fn from(value: WotPredictor) -> Self {
         value.graph
     }
 }
@@ -208,25 +208,25 @@ mod tests {
     /**
      * Constructs a simple graph
      */
-    fn get_simple_graph() -> WotGraph<(), ()> {
-        let mut nodes: Vec<WotNode<(), ()>> = Vec::new();
+    fn get_simple_graph() -> WotGraph {
+        let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
-        nodes.push(WotNode::new_class("d1".to_string(), String::from("example.com1"), ()));
-        nodes.push(WotNode::new_class("d2".to_string(), String::from("example.com2"), ()));
+        nodes.push(WotNode::new_class("d1".to_string(), "".to_string(), vec![String::from("example.com1")]));
+        nodes.push(WotNode::new_class("d2".to_string(), "".to_string(), vec![String::from("example.com2")]));
 
         nodes.push(WotNode::new_list("n2".to_string(), "".to_string(), vec![
             WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
             WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap(),
-        ], ()));
+        ]));
         nodes.push(WotNode::new_list("n1".to_string(), "".to_string(), vec![
             WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
             WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()
-        ], ()));
+        ]));
         nodes.push(WotNode::new_list("me".to_string(), "".to_string(), vec![
             WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
             WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
-        ], ()));
+        ]));
 
         WotGraph::new(nodes).unwrap()
     }
@@ -241,18 +241,18 @@ mod tests {
 
     #[test]
     fn pubkeys_unique() {
-        let mut nodes: Vec<WotNode<(), ()>> = Vec::new();
+        let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{data: ()},
+            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
         });
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{data: ()},
+            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
         });
         let result = WotGraph::new(nodes);
         assert!(result.is_err());

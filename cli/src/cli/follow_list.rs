@@ -133,13 +133,16 @@ impl Follow {
         &self.3
     }
 
-    pub fn domain_id(&self) -> Option<String> {
+    /**
+     * Identifies the target in the WoT node.
+     * Each pubkey can own 1 list and multiple domains. In the web of trust, each of this entity is a different node though.
+     */
+    pub fn target_id(&self) -> String {
         if let Some(domain) = self.domain() {
-            Some(format!("{}-{}", self.pubkey(), domain))
+            format!("domain-{}-{}", self.pubkey(), domain)
         } else {
-            None
+            format!("list-{}", self.pubkey())
         }
-
     }
 }
 

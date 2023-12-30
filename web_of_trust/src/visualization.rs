@@ -14,9 +14,9 @@ use crate::prediction::{node::{WotFollow, WotNode}, graph::WotGraph};
 
 
 
-impl<F, C> Into<Graph<WotNode<F, C>, WotFollow>> for WotGraph<F, C> where F: Clone, C: Clone {
-    fn into(self) -> Graph<WotNode<F, C>, WotFollow> {
-        let mut g: StableGraph<WotNode<F, C>, WotFollow> = StableGraph::new();
+impl Into<Graph<WotNode, WotFollow>> for WotGraph {
+    fn into(self) -> Graph<WotNode, WotFollow> {
+        let mut g: StableGraph<WotNode, WotFollow> = StableGraph::new();
         let mut node_map: HashMap<String, NodeIndex> = HashMap::new();
         for node in self.nodes.iter() {
             let copy = node.clone();
@@ -47,18 +47,18 @@ impl<F, C> Into<Graph<WotNode<F, C>, WotFollow>> for WotGraph<F, C> where F: Clo
 }
 
 
-struct InteractiveApp<F, C> where F: Clone, C: Clone {
-    graph: Graph<WotNode<F, C>, WotFollow>,
+struct InteractiveApp {
+    graph: Graph<WotNode, WotFollow>,
 }
 
-impl<F, C> InteractiveApp<F, C> where F: Clone, C: Clone {
-    pub fn new(_: &CreationContext<'_>, graph: Graph<WotNode<F, C>, WotFollow>) -> Self {
+impl InteractiveApp {
+    pub fn new(_: &CreationContext<'_>, graph: Graph<WotNode, WotFollow>) -> Self {
         Self { graph }
     }
 }
 
 
-impl<F, C> App for InteractiveApp<F, C> where F: Clone, C: Clone {
+impl App for InteractiveApp {
     fn update(&mut self, ctx: &Context, _: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let interaction_settings = &SettingsInteraction::new()
@@ -82,8 +82,8 @@ impl<F, C> App for InteractiveApp<F, C> where F: Clone, C: Clone {
 /**
  * Show a GUI that visualized the graph in a simple way.
  */
-pub fn visualize_graph<F, C>(graph: WotGraph<F, C>, title: &str) -> () where F: Clone + 'static, C: Clone + 'static {
-    let egui_graph: Graph<WotNode<F, C>, WotFollow> = graph.into();
+pub fn visualize_graph(graph: WotGraph, title: &str) -> () {
+    let egui_graph: Graph<WotNode, WotFollow> = graph.into();
 
     let native_options = eframe::NativeOptions::default();
     run_native(

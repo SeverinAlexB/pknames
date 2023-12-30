@@ -5,13 +5,12 @@ use std::hash::Hash;
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
-pub enum WotNodeType<F, C> {
+pub enum WotNodeType {
     WotFollowNode {
         follows: Vec<WotFollow>,
-        data: F
     },
     WotClass {
-        data: C
+        claims: Vec<String>
     },
     
     WotTempNode {
@@ -19,7 +18,7 @@ pub enum WotNodeType<F, C> {
     }
 }
 
-impl<F, C> WotNodeType<F, C> where F: Clone, C: Clone {
+impl WotNodeType {
     pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
         match self {
             WotNodeType::WotClass{..} => {
@@ -85,7 +84,7 @@ impl<F, C> WotNodeType<F, C> where F: Clone, C: Clone {
 
 }
 
-impl<F, C> fmt::Display for WotNodeType<F, C> where F: Clone, C: Clone {
+impl fmt::Display for WotNodeType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let follows = self.get_follows();
         let follow_str = match follows {
@@ -112,14 +111,13 @@ impl<F, C> fmt::Display for WotNodeType<F, C> where F: Clone, C: Clone {
 }
 
 #[derive(Debug, Clone)]
-pub struct WotNode<F, C>
-where F: Clone, C: Clone{
+pub struct WotNode {
     pub pubkey: String,
     pub alias: String,
-    pub typ: WotNodeType<F, C>
+    pub typ: WotNodeType
 }
 
-impl<F, C> fmt::Display for WotNode<F, C> where F: Clone, C: Clone {
+impl fmt::Display for WotNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut name = self.pubkey.clone();
         if self.alias.len() > 0 {
@@ -129,21 +127,21 @@ impl<F, C> fmt::Display for WotNode<F, C> where F: Clone, C: Clone {
     }
 }
 
-impl<F, C> WotNode<F, C> where F: Clone, C: Clone {
+impl WotNode {
 
-    pub fn new_class(pubkey: String, alias: String, data: C) -> WotNode<F, C> {
+    pub fn new_class(pubkey: String, alias: String, claims: Vec<String>) -> WotNode {
         WotNode {
             pubkey,
             alias,
-            typ: WotNodeType::WotClass { data: data }
+            typ: WotNodeType::WotClass{claims}
         }
     }
 
-    pub fn new_list(pubkey: String, alias: String, follows: Vec<WotFollow>, data: F) -> WotNode<F, C> {
+    pub fn new_list(pubkey: String, alias: String, follows: Vec<WotFollow>) -> WotNode {
         WotNode {
             pubkey,
             alias,
-            typ: WotNodeType::WotFollowNode { follows, data }
+            typ: WotNodeType::WotFollowNode { follows }
         }
     }
 
@@ -166,7 +164,7 @@ impl<F, C> WotNode<F, C> where F: Clone, C: Clone {
     /**
      * Finds a WotNode in a Vec<&WotNode>
      */
-    pub fn binary_search_ref<'a>(pubkey: &str, list: &'a Vec<&WotNode<F, C>>) -> Option<&'a WotNode<F, C>> {
+    pub fn binary_search_ref<'a>(pubkey: &str, list: &'a Vec<&WotNode>) -> Option<&'a WotNode> {
         let result = list.binary_search_by_key(&pubkey, |node| &node.pubkey);
         if let Ok(index) = result  {
             let node = &list[index];
@@ -179,7 +177,7 @@ impl<F, C> WotNode<F, C> where F: Clone, C: Clone {
     /**
      * Finds a WotNode in a Vec<WotNode>
      */
-    pub fn binary_search<'a>(pubkey: &str, list: &'a Vec<WotNode<F, C>>) -> Option<&'a WotNode<F, C>> {
+    pub fn binary_search<'a>(pubkey: &str, list: &'a Vec<WotNode>) -> Option<&'a WotNode> {
         let result = list.binary_search_by_key(&pubkey, |node| &node.pubkey);
         if let Ok(index) = result  {
             let node = &list[index];
@@ -193,15 +191,15 @@ impl<F, C> WotNode<F, C> where F: Clone, C: Clone {
 
 }
 
-impl<A, B> PartialEq for WotNode<A, B> where A: Clone, B: Clone {
+impl PartialEq for WotNode {
     fn eq(&self, other: &Self) -> bool {
         self.pubkey == other.pubkey
     }
 }
 
-impl<A, B> Eq for WotNode<A, B> where A: Clone, B:Clone {}
+impl Eq for WotNode {}
 
-impl<A, B> Hash for WotNode<A, B> where A: Clone, B: Clone {
+impl Hash for WotNode {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.pubkey.hash(state);
     }
@@ -252,34 +250,30 @@ mod tests {
 
     use crate::prediction::node::WotFollow;
 
-    use super::{WotNode, WotNodeType};
+    use super::{WotNode};
 
     #[test]
     fn sort_node_vec() {
-        let mut list: Vec<WotNode<(), ()>> = vec![
+        let mut list: Vec<WotNode> = vec![
             WotNode::new_list(
                 "c".to_string(), 
                 "".to_string(), 
-                vec![], 
-                ()
+                vec![]
             ),
             WotNode::new_list(
                 "b".to_string(), 
                 "".to_string(), 
-                vec![], 
-                ()
+                vec![]
             ),
             WotNode::new_list(
                 "a".to_string(), 
                 "".to_string(), 
-                vec![], 
-                ()
+                vec![]
             ),
             WotNode::new_list(
                 "d".to_string(), 
                 "".to_string(), 
-                vec![], 
-                ()
+                vec![]
             ),
         ];
 
@@ -295,7 +289,7 @@ mod tests {
     #[test]
     fn display_node() {
         let pubkey = String::from("923jladsf");
-        let node: WotNode<(), ()> = WotNode::new_list(
+        let node: WotNode = WotNode::new_list(
             pubkey.clone(), 
             "me".to_string(), 
             vec![
@@ -309,8 +303,7 @@ mod tests {
                     target_pubkey: String::from("n2"),
                     weight: -1.0
                 }
-            ], 
-            ()
+            ]
         );
         println!("{}", node);
 
