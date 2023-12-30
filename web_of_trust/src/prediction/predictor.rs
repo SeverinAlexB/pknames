@@ -124,7 +124,7 @@ impl WotPredictor {
                             pubkey: follow.target_pubkey.clone(),
                             alias: "".to_string(),
                             typ: super::node::WotNodeType::WotTempNode { 
-                                follows:  vec![WotFollow::new(follow.target_pubkey.clone(), follow.target_pubkey.clone(), 1.0).unwrap()]
+                                follows:  vec![WotFollow::new(follow.target_pubkey.clone(), follow.target_pubkey.clone(), 1.0, None)]
                             },
                         };
                         current_layer.push(temp);
@@ -254,8 +254,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap()
+                    WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
+                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string()))
                 ]
             },
         });
@@ -265,8 +265,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
-                    WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()
+                    WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
+                    WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string()))
                 ]
             },
         });
@@ -276,8 +276,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
+                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
                 ]
             },
         });
@@ -305,8 +305,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n1".to_string(), "d1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("n1".to_string(), "d2".to_string(), 1.0).unwrap()
+                    WotFollow::new("n1".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
+                    WotFollow::new("n1".to_string(), "d2".to_string(), 1.0, Some("example.com".to_string()))
                 ]
             },
         });
@@ -316,7 +316,7 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap()
+                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string()))
                 ]
             },
         });
@@ -326,7 +326,7 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n1".to_string(), "n3".to_string(), 1.0).unwrap(),
+                    WotFollow::new("n1".to_string(), "n3".to_string(), 1.0, None),
                 ]
             },
         });
@@ -336,8 +336,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
+                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
                 ]
             },
         });

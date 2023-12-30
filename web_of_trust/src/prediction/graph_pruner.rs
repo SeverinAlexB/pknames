@@ -189,9 +189,9 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap(),
-                    WotFollow::new("n2".to_string(), "n3".to_string(), -1.0).unwrap(),
+                    WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
+                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
+                    WotFollow::new("n2".to_string(), "n3".to_string(), -1.0, Some("example.com".to_string())),
                 ]
             },
         });
@@ -201,9 +201,9 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
-                    WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap(),
-                    WotFollow::new("n1".to_string(), "me".to_string(), 0.0).unwrap()
+                    WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
+                    WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string())),
+                    WotFollow::new("n1".to_string(), "me".to_string(), 0.0, None)
                 ]
             },
         });
@@ -213,7 +213,7 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n3".to_string(), "me".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n3".to_string(), "me".to_string(), -0.5, None),
                 ]
             },
         });
@@ -223,8 +223,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
+                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
                 ]
             },
         });
@@ -253,7 +253,7 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n1".to_string(), "n4".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n1".to_string(), "n4".to_string(), -0.5, None),
                 ]
             },
         });
@@ -263,7 +263,7 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n2".to_string(), "n3".to_string(), 1.0).unwrap(),
+                    WotFollow::new("n2".to_string(), "n3".to_string(), 1.0, None),
                 ]
             },
         });
@@ -273,8 +273,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n3".to_string(), "d2".to_string(), -0.5).unwrap(),
-                    WotFollow::new("n3".to_string(), "n1".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n3".to_string(), "d2".to_string(), -0.5, Some("example.com".to_string())),
+                    WotFollow::new("n3".to_string(), "n1".to_string(), -0.5, None),
                 ]
             },
         });
@@ -284,8 +284,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("n4".to_string(), "d1".to_string(), -0.5).unwrap(),
-                    WotFollow::new("n4".to_string(), "n2".to_string(), -0.5).unwrap(),
+                    WotFollow::new("n4".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
+                    WotFollow::new("n4".to_string(), "n2".to_string(), -0.5, Some("example.com".to_string())),
                 ]
             },
         });
@@ -295,8 +295,8 @@ mod tests {
             alias: "".to_string(),
             typ: WotNodeType::WotFollowNode {
                 follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
+                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
                 ]
             },
         });
@@ -327,18 +327,18 @@ mod tests {
 
         let found = search.get_found_follows();
         assert_eq!(found.len(), 6);
-        assert!(found.contains(&WotFollow::new("me".to_string(), "n1".to_string(), 0.0).unwrap()));
-        assert!(found.contains(&WotFollow::new("me".to_string(), "n2".to_string(), 0.0).unwrap()));
-        assert!(found.contains(&WotFollow::new("n1".to_string(), "d1".to_string(), 0.0).unwrap()));
-        assert!(found.contains(&WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()));
-        assert!(found.contains(&WotFollow::new("n2".to_string(), "d1".to_string(), 0.0).unwrap()));
-        assert!(found.contains(&WotFollow::new("n2".to_string(), "d2".to_string(), 0.0).unwrap()));
+        assert!(found.contains(&WotFollow::new("me".to_string(), "n1".to_string(), 0.0, None)));
+        assert!(found.contains(&WotFollow::new("me".to_string(), "n2".to_string(), 0.0, None)));
+        assert!(found.contains(&WotFollow::new("n1".to_string(), "d1".to_string(), 0.0, Some("example.com".to_string()))));
+        assert!(found.contains(&WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string()))));
+        assert!(found.contains(&WotFollow::new("n2".to_string(), "d1".to_string(), 0.0, Some("example.com".to_string()))));
+        assert!(found.contains(&WotFollow::new("n2".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string()))));
 
         let missing = search.get_missing_follows();
         assert_eq!(missing.len(), 3);
-        assert!(missing.contains(&WotFollow::new("n2".to_string(), "n3".to_string(), 0.0).unwrap()));
-        assert!(missing.contains(&WotFollow::new("n3".to_string(), "me".to_string(), 0.0).unwrap()));
-        assert!(missing.contains(&WotFollow::new("n1".to_string(), "me".to_string(), 0.0).unwrap()));
+        assert!(missing.contains(&WotFollow::new("n2".to_string(), "n3".to_string(), 0.0, None)));
+        assert!(missing.contains(&WotFollow::new("n3".to_string(), "me".to_string(), 0.0, None)));
+        assert!(missing.contains(&WotFollow::new("n1".to_string(), "me".to_string(), 0.0, None)));
     }
 
     #[test]

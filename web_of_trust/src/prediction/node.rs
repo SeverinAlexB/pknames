@@ -33,6 +33,20 @@ impl WotNodeType {
         }
     }
 
+    pub fn get_claims(&self) -> Option<&Vec<String>> {
+        match self {
+            WotNodeType::WotClass{claims} => {
+                Some(claims)
+            },
+            WotNodeType::WotFollowNode {..} => {
+                None
+            },
+            WotNodeType::WotTempNode { ..} => {
+                None
+            }
+        }
+    }
+
     pub fn get_follows_mut(&mut self) -> Option<&mut Vec<WotFollow>> {
         match self {
             WotNodeType::WotClass{..} => {
@@ -145,6 +159,10 @@ impl WotNode {
         }
     }
 
+    pub fn get_claims(&self) -> Option<&Vec<String>> {
+        self.typ.get_claims()
+    }
+
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
         let follows = self.typ.get_follows()?;
         let found = follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
@@ -210,15 +228,13 @@ impl Hash for WotNode {
 pub struct WotFollow {
     pub target_pubkey: String,
     pub source_pubkey: String,
-    pub weight: f32
+    pub weight: f32,
+    attribution: Option<String>
 }
 
 impl WotFollow {
-    pub fn new(source_pubkey: String, target_pubkey: String, weight: f32) -> Result<Self, &'static str> {
-        if weight < -1.0 || weight > 1.0 {
-            return Err("Weight not in range of -1.0 to 1.0.")
-        }
-        Ok(WotFollow { target_pubkey, source_pubkey, weight })
+    pub fn new(source_pubkey: String, target_pubkey: String, weight: f32, attribution: Option<String>) -> Self {
+        WotFollow { target_pubkey, source_pubkey, weight , attribution}
     }
 }
 
@@ -296,12 +312,14 @@ mod tests {
                 WotFollow {
                     source_pubkey: String::from("hello"),
                     target_pubkey: String::from("n1"),
-                    weight: 1.0
+                    weight: 1.0,
+                    attribution: Some("example.com".to_string())
                 },
                 WotFollow {
                     source_pubkey: String::from("hello"),
                     target_pubkey: String::from("n2"),
-                    weight: -1.0
+                    weight: -1.0,
+                    attribution: Some("example.com".to_string())
                 }
             ]
         );

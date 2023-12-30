@@ -121,19 +121,17 @@ mod tests {
 
         let list = FollowList::new_with_follows(
             "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
-            Some("myList".to_string()),
+            "myList".to_string(),
             vec![
                 Follow::new(
                     "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(),
                     1.0 / 3.0,
-                    "".to_string(),
                     None
                 )
                 .unwrap(),
                 Follow::new(
                     "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(),
                     -1.0,
-                    "".to_string(),
                     Some("example.com".to_string()),
                 )
                 .unwrap(),

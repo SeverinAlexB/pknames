@@ -216,16 +216,16 @@ mod tests {
         nodes.push(WotNode::new_class("d2".to_string(), "".to_string(), vec![String::from("example.com2")]));
 
         nodes.push(WotNode::new_list("n2".to_string(), "".to_string(), vec![
-            WotFollow::new("n2".to_string(), "d1".to_string(), 1.0).unwrap(),
-            WotFollow::new("n2".to_string(), "d2".to_string(), -1.0).unwrap(),
+            WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
+            WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
         ]));
         nodes.push(WotNode::new_list("n1".to_string(), "".to_string(), vec![
-            WotFollow::new("n1".to_string(), "d1".to_string(), -0.5).unwrap(),
-            WotFollow::new("n1".to_string(), "d2".to_string(), 0.0).unwrap()
+            WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
+            WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string()))
         ]));
         nodes.push(WotNode::new_list("me".to_string(), "".to_string(), vec![
-            WotFollow::new("me".to_string(), "n1".to_string(), 1.0).unwrap(),
-            WotFollow::new("me".to_string(), "n2".to_string(), 0.5).unwrap()
+            WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+            WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
         ]));
 
         WotGraph::new(nodes).unwrap()

@@ -1,20 +1,22 @@
-use std::collections::HashMap;
-
-use fancyd_wot::prediction::{node::{WotNode, WotNodeType}, graph::WotGraph};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 
 #[derive(Serialize, Deserialize)]
 pub struct FollowList {
     pub pubkey: String,
-    pub alias: Option<String>,
+    #[serde(default = "default_alias")]
+    pub alias: String,
     pub follows: Vec<Follow>,
+}
+
+fn default_alias() -> String{
+    "".to_string()
 }
 
 impl std::fmt::Display for FollowList {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut name = self.pubkey.clone();
-        if let Some(alias) = self.alias.clone() {
-            name = format!("{} ({})", name, alias);
+        if self.alias.len() > 0 {
+            name = format!("{} ({})", name, self.alias);
         }
         let follow_strings: Vec<String> = self
             .follows
@@ -26,14 +28,14 @@ impl std::fmt::Display for FollowList {
 }
 
 impl FollowList {
-    pub fn new(pubkey: String, alias: Option<String>) -> Self {
+    pub fn new(pubkey: String, alias: String) -> Self {
         FollowList {
             pubkey: pubkey,
             alias: alias,
             follows: vec![],
         }
     }
-    pub fn new_with_follows(pubkey: String, alias: Option<String> , follows: Vec<Follow>) -> Self {
+    pub fn new_with_follows(pubkey: String, alias: String , follows: Vec<Follow>) -> Self {
         FollowList {
             pubkey: pubkey,
             alias: alias,
@@ -89,10 +91,25 @@ impl FollowList {
 #[derive(Serialize, Deserialize)]
 pub struct Follow(
     String, // pubkey
+    #[serde(serialize_with = "serialize_weight")]
     f32, // weight
-    String, // alias 
+    #[serde(default = "default_domain")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     Option<String> // domain
 );
+
+fn serialize_weight<S>(weight: &f32, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    let accuracy_after_comma = 3;
+    let base: f32 = 10.0;
+    let divider = base.powi(accuracy_after_comma);
+    let clone = weight.clone();
+    let rounded: f32 = (clone*divider).round()/divider;
+    s.serialize_f32(rounded)
+}
+
+fn default_domain() -> Option<String> {
+    None
+}
 
 impl std::fmt::Display for Follow {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -102,9 +119,6 @@ impl std::fmt::Display for Follow {
         };
         let mut name = format!("{} {}", emoji, self.pubkey());
 
-        if self.alias().len() > 0 {
-            name = format!("{} ({})", name, self.alias());
-        };
         if let Some(domain) = self.domain() {
             name = format!("{} {}", name, domain);
         };
@@ -113,8 +127,8 @@ impl std::fmt::Display for Follow {
 }
 
 impl Follow {
-    pub fn new(target_pubkey: String, weight: f32, alias: String, domain: Option<String>) -> Result<Self, &'static str> {
-        Ok(Follow(target_pubkey, weight, alias, domain))
+    pub fn new(target_pubkey: String, weight: f32, domain: Option<String>) -> Result<Self, &'static str> {
+        Ok(Follow(target_pubkey, weight, domain))
     }
 
     pub fn pubkey(&self) -> &String {
@@ -125,25 +139,11 @@ impl Follow {
         &self.1
     }
 
-    pub fn alias(&self) -> &str {
+
+    pub fn domain(&self) -> &Option<String> {
         &self.2
     }
 
-    pub fn domain(&self) -> &Option<String> {
-        &self.3
-    }
-
-    /**
-     * Identifies the target in the WoT node.
-     * Each pubkey can own 1 list and multiple domains. In the web of trust, each of this entity is a different node though.
-     */
-    pub fn target_id(&self) -> String {
-        if let Some(domain) = self.domain() {
-            format!("domain-{}-{}", self.pubkey(), domain)
-        } else {
-            format!("list-{}", self.pubkey())
-        }
-    }
 }
 
 // impl Into<WotNode<(), ()> for Follow {
@@ -165,10 +165,10 @@ mod tests {
     fn to_json_and_back() {
         let list = FollowList::new_with_follows(
             "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
-            Some("myList".to_string()),
+            "myList".to_string(),
             vec![
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, "".to_string(), None).unwrap(),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, "".to_string(), Some("example.com".to_string())).unwrap()
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, None).unwrap(),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com".to_string())).unwrap()
             ],
         );
 
@@ -185,14 +185,11 @@ mod tests {
             "follows": [
               [
                 "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
-                0.33333334,
-                "",
-                null
+                0.33333334
               ],
               [
                 "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy",
                 -1.0,
-                "",
                 "example.com"
               ]
             ]
