@@ -217,8 +217,8 @@ mod tests {
         let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
-        nodes.push(WotNode::new_class("d1".to_string(), "".to_string(), vec![String::from("example.com1")]));
-        nodes.push(WotNode::new_class("d2".to_string(), "".to_string(), vec![String::from("example.com2")]));
+        nodes.push(WotNode::new_class("d1".to_string(), "".to_string()));
+        nodes.push(WotNode::new_class("d2".to_string(), "".to_string()));
 
         nodes.push(WotNode::new_list("n2".to_string(), "".to_string(), vec![
             WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
@@ -252,12 +252,12 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{},
         });
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{},
         });
         let result = WotGraph::new(nodes);
         assert!(result.is_err());

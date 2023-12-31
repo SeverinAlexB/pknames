@@ -46,7 +46,7 @@ impl WotTransformer {
                 value
             }).collect();
             
-            WotNode::new_class(follows[0].pubkey().clone(), "".to_string(), Vec::from_iter(attributions.into_iter()))
+            WotNode::new_class(follows[0].pubkey().clone(), "".to_string())
         }).collect();
         domain_nodes
     }
@@ -102,10 +102,8 @@ mod tests {
         assert_eq!(classes.len(), 2);
         let first = classes.get(0).unwrap();
         assert_eq!(first.pubkey, "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string());
-        assert_eq!(first.get_attributions().unwrap().len(), 1);
         let second = classes.get(1).unwrap();
         assert_eq!(second.pubkey, "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string());
-        assert_eq!(second.get_attributions().unwrap().len(), 2);
     }
 
     #[test]
@@ -136,7 +134,6 @@ mod tests {
         assert_eq!(nodes.len(), 2);
         let first = nodes.get(0).unwrap();
         assert_eq!(first.pubkey, "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string());
-        assert!(first.get_attributions().is_none());
         let follows = first.get_follows().unwrap();
         assert_eq!(follows.len(), 5);
         assert!(follows[0].attribution.is_none());

@@ -9,9 +9,7 @@ pub enum WotNodeType {
     WotFollowNode {
         follows: Vec<WotFollow>,
     },
-    WotClass {
-        attributions: Vec<String>
-    },
+    WotClass {},
     
     WotTempNode {
         follows: Vec<WotFollow>
@@ -29,20 +27,6 @@ impl WotNodeType {
             },
             WotNodeType::WotTempNode { follows } => {
                 Some(follows)
-            }
-        }
-    }
-
-    pub fn get_attributions(&self) -> Option<&Vec<String>> {
-        match self {
-            WotNodeType::WotClass{attributions} => {
-                Some(attributions)
-            },
-            WotNodeType::WotFollowNode {..} => {
-                None
-            },
-            WotNodeType::WotTempNode { ..} => {
-                None
             }
         }
     }
@@ -143,11 +127,11 @@ impl fmt::Display for WotNode {
 
 impl WotNode {
 
-    pub fn new_class(pubkey: String, alias: String, attributions: Vec<String>) -> WotNode {
+    pub fn new_class(pubkey: String, alias: String) -> WotNode {
         WotNode {
             pubkey,
             alias,
-            typ: WotNodeType::WotClass{attributions}
+            typ: WotNodeType::WotClass{}
         }
     }
 
@@ -157,10 +141,6 @@ impl WotNode {
             alias,
             typ: WotNodeType::WotFollowNode { follows }
         }
-    }
-
-    pub fn get_attributions(&self) -> Option<&Vec<String>> {
-        self.typ.get_attributions()
     }
 
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
@@ -262,11 +242,8 @@ impl Hash for WotFollow {
 
 #[cfg(test)]
 mod tests {
-
-
     use crate::prediction::node::WotFollow;
-
-    use super::{WotNode};
+    use super::WotNode;
 
     #[test]
     fn sort_node_vec() {

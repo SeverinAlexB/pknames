@@ -241,12 +241,12 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{},
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{},
         });
 
         nodes.push(WotNode {
@@ -292,12 +292,12 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{},
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{},
         });
 
         nodes.push(WotNode {
