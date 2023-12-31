@@ -37,6 +37,11 @@ impl WotGraph {
         Ok(graph)
     }
 
+    pub fn new2(mut nodes: Vec<WotNode>) -> WotGraph {
+        nodes.sort_unstable_by_key(|node| node.pubkey.clone());
+        WotGraph { nodes }
+    }
+
     /**
      * Checks if all follow target nodes exist.
      */
@@ -247,12 +252,12 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
         });
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{claims: vec![String::from("example.com")]},
+            typ: WotNodeType::WotClass{attributions: vec![String::from("example.com")]},
         });
         let result = WotGraph::new(nodes);
         assert!(result.is_err());

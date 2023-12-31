@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use fancyd_wot::prediction::node::{WotNode, WotFollow};
+use fancyd_wot::prediction::{node::{WotNode, WotFollow}, graph::WotGraph};
 
 use super::follow_list::{FollowList, Follow};
 
@@ -40,13 +40,13 @@ impl WotTransformer {
             vec.push(follow);
         };
         let domain_nodes: Vec<WotNode> = map.into_values().into_iter().map(|follows| {
-            let claims: HashSet<String> = follows.iter().map(|follow| {
+            let attributions: HashSet<String> = follows.iter().map(|follow| {
                 let op = (*follow).domain().clone();
                 let value = op.unwrap();
                 value
             }).collect();
             
-            WotNode::new_class(follows[0].pubkey().clone(), "".to_string(), Vec::from_iter(claims.into_iter()))
+            WotNode::new_class(follows[0].pubkey().clone(), "".to_string(), Vec::from_iter(attributions.into_iter()))
         }).collect();
         domain_nodes
     }
@@ -64,6 +64,13 @@ impl WotTransformer {
             node
         }).collect();
         nodes
+    }
+
+    pub fn get_graph(&self) -> WotGraph {
+        let classes = self.get_classes();
+        let mut nodes = self.get_follow_nodes();
+        nodes.extend(classes.into_iter());
+        WotGraph::new2(nodes)
     }
 
 
@@ -95,10 +102,10 @@ mod tests {
         assert_eq!(classes.len(), 2);
         let first = classes.get(0).unwrap();
         assert_eq!(first.pubkey, "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string());
-        assert_eq!(first.get_claims().unwrap().len(), 1);
+        assert_eq!(first.get_attributions().unwrap().len(), 1);
         let second = classes.get(1).unwrap();
         assert_eq!(second.pubkey, "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string());
-        assert_eq!(second.get_claims().unwrap().len(), 2);
+        assert_eq!(second.get_attributions().unwrap().len(), 2);
     }
 
     #[test]
@@ -129,8 +136,11 @@ mod tests {
         assert_eq!(nodes.len(), 2);
         let first = nodes.get(0).unwrap();
         assert_eq!(first.pubkey, "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string());
-        assert!(first.get_claims().is_none());
-        assert_eq!(first.get_follows().unwrap().len(), 5);
+        assert!(first.get_attributions().is_none());
+        let follows = first.get_follows().unwrap();
+        assert_eq!(follows.len(), 5);
+        assert!(follows[0].attribution.is_none());
+        assert_eq!(follows.get(1).unwrap().clone().attribution.unwrap(), "example.com1".to_string());
         let second = nodes.get(1).unwrap();
         assert_eq!(second.pubkey, "pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey".to_string());
     }

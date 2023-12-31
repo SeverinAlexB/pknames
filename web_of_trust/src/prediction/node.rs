@@ -10,7 +10,7 @@ pub enum WotNodeType {
         follows: Vec<WotFollow>,
     },
     WotClass {
-        claims: Vec<String>
+        attributions: Vec<String>
     },
     
     WotTempNode {
@@ -33,10 +33,10 @@ impl WotNodeType {
         }
     }
 
-    pub fn get_claims(&self) -> Option<&Vec<String>> {
+    pub fn get_attributions(&self) -> Option<&Vec<String>> {
         match self {
-            WotNodeType::WotClass{claims} => {
-                Some(claims)
+            WotNodeType::WotClass{attributions} => {
+                Some(attributions)
             },
             WotNodeType::WotFollowNode {..} => {
                 None
@@ -143,11 +143,11 @@ impl fmt::Display for WotNode {
 
 impl WotNode {
 
-    pub fn new_class(pubkey: String, alias: String, claims: Vec<String>) -> WotNode {
+    pub fn new_class(pubkey: String, alias: String, attributions: Vec<String>) -> WotNode {
         WotNode {
             pubkey,
             alias,
-            typ: WotNodeType::WotClass{claims}
+            typ: WotNodeType::WotClass{attributions}
         }
     }
 
@@ -159,8 +159,8 @@ impl WotNode {
         }
     }
 
-    pub fn get_claims(&self) -> Option<&Vec<String>> {
-        self.typ.get_claims()
+    pub fn get_attributions(&self) -> Option<&Vec<String>> {
+        self.typ.get_attributions()
     }
 
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
@@ -229,7 +229,7 @@ pub struct WotFollow {
     pub target_pubkey: String,
     pub source_pubkey: String,
     pub weight: f32,
-    attribution: Option<String>
+    pub attribution: Option<String>
 }
 
 impl WotFollow {
