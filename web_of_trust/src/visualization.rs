@@ -8,14 +8,13 @@ use egui_graphs::{
 use std::collections::HashMap;
 
 
-use petgraph::stable_graph::{NodeIndex, StableGraph};
+use petgraph::{stable_graph::{NodeIndex, StableGraph, DefaultIx}, Directed};
 
-use crate::prediction::{node::{WotFollow, WotNode}, graph::WotGraph};
+use crate::{prediction::{node::{WotFollow, WotNode}, graph::WotGraph}, node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
 
 
-
-impl Into<Graph<WotNode, WotFollow>> for WotGraph {
-    fn into(self) -> Graph<WotNode, WotFollow> {
+impl Into<Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>> for WotGraph {
+    fn into(self) -> Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> {
         let mut g: StableGraph<WotNode, WotFollow> = StableGraph::new();
         let mut node_map: HashMap<String, NodeIndex> = HashMap::new();
         for node in self.nodes.iter() {
@@ -52,6 +51,7 @@ impl Into<Graph<WotNode, WotFollow>> for WotGraph {
                 label = format!("{} ({})", label, attribution_alias);
             }
             graph.node_mut(*index).unwrap().set_label(label);
+            
         }
 
         graph
@@ -60,11 +60,11 @@ impl Into<Graph<WotNode, WotFollow>> for WotGraph {
 
 
 struct InteractiveApp {
-    graph: Graph<WotNode, WotFollow>,
+    graph: Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>,
 }
 
 impl InteractiveApp {
-    pub fn new(_: &CreationContext<'_>, graph: Graph<WotNode, WotFollow>) -> Self {
+    pub fn new(cc: &CreationContext<'_>, graph: Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>) -> Self {
         Self { graph }
     }
 }
@@ -82,10 +82,12 @@ impl App for InteractiveApp {
                 .with_edge_selection_enabled(true)
                 .with_edge_selection_multi_enabled(true);
             let style_settings = &SettingsStyle::new().with_labels_always(true);
+        
             ui.add(
-                &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape>::new(&mut self.graph)
+                &mut GraphView::<_, _, _, _, FancyNodeShape, FancyEdgeShape>::new(&mut self.graph)
                     .with_styles(style_settings)
-                    .with_interactions(interaction_settings),
+                    .with_interactions(interaction_settings)
+                    ,
             );
         });
     }
@@ -95,13 +97,15 @@ impl App for InteractiveApp {
  * Show a GUI that visualized the graph in a simple way.
  */
 pub fn visualize_graph(graph: WotGraph, title: &str) -> () {
-    let egui_graph: Graph<WotNode, WotFollow> = graph.into();
+    let egui_graph: Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> = graph.into();
 
     let native_options = eframe::NativeOptions::default();
     run_native(
         title,
         native_options,
-        Box::new(|cc| Box::new(InteractiveApp::new(cc, egui_graph))),
+        Box::new(|cc| {
+            Box::new(InteractiveApp::new(cc, egui_graph))
+        }),
     )
     .unwrap();
 }
