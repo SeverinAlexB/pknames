@@ -64,6 +64,22 @@ impl<'a> GraphPruner<'a> {
         self.visited.remove(visited_index);
     }
 
+    /**
+     * Prunes all attributions that are not equal to `attribution`.
+     */
+    fn prune_unequal_attributions(mut graph: WotGraph, attribution: &String) -> WotGraph {
+        for node in graph.nodes.iter_mut() {
+            let selected_follows: Vec<WotFollow> = node.follows.clone().into_iter().filter(|follow| {
+                match follow.attribution.clone() {
+                    None => true,
+                    Some(att) => att == *attribution
+                }
+            }).collect();
+            node.follows = selected_follows;
+        }
+        graph
+    }
+
     fn search_paths(&mut self) -> Vec<Vec<&'a WotNode>> {
         let start = self.get_start_node();
         let classes = self.graph.get_classes();
@@ -128,8 +144,8 @@ impl<'a> GraphPruner<'a> {
             let mut node = (*original).clone();
             if let Some(list) = map.get(&node.pubkey) {
                 let follows = list.clone();
-                node.typ.clear_follows();
-                node.typ.extend_follows(follows);
+                node.follows.clear();
+                node.extend_follows(follows);
             }
             node
         }).collect();
@@ -163,7 +179,7 @@ impl fmt::Display for GraphPruner<'_> {
 mod tests {
     use std::collections::HashSet;
 
-    use super::super::node::{WotNode, WotNodeType, WotFollow};
+    use super::super::node::{WotNode, WotFollow};
     use super::{WotGraph, GraphPruner};
 
     /**
@@ -176,57 +192,49 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![]
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![]
         });
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
-                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
-                    WotFollow::new("n2".to_string(), "n3".to_string(), -1.0, Some("example.com".to_string())),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
+                WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
+                WotFollow::new("n2".to_string(), "n3".to_string(), -1.0, Some("example.com".to_string())),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
-                    WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string())),
-                    WotFollow::new("n1".to_string(), "me".to_string(), 0.0, None)
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
+                WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string())),
+                WotFollow::new("n1".to_string(), "me".to_string(), 0.0, None)
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n3".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n3".to_string(), "me".to_string(), -0.5, None),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n3".to_string(), "me".to_string(), -0.5, None),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
-                ]
-            },
+            follows: vec![
+                WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
+            ]
         });
 
         WotGraph::new(nodes).unwrap()
@@ -240,65 +248,55 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![]
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![]
         });
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n1".to_string(), "n4".to_string(), -0.5, None),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n1".to_string(), "n4".to_string(), -0.5, None),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n2".to_string(), "n3".to_string(), 1.0, None),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n2".to_string(), "n3".to_string(), 1.0, None),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n3".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n3".to_string(), "d2".to_string(), -0.5, Some("example.com".to_string())),
-                    WotFollow::new("n3".to_string(), "n1".to_string(), -0.5, None),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n3".to_string(), "d2".to_string(), -0.5, Some("example.com".to_string())),
+                WotFollow::new("n3".to_string(), "n1".to_string(), -0.5, None),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n4".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n4".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
-                    WotFollow::new("n4".to_string(), "n2".to_string(), -0.5, Some("example.com".to_string())),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n4".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
+                WotFollow::new("n4".to_string(), "n2".to_string(), -0.5, Some("example.com".to_string())),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
-                ]
-            },
+            follows: vec![
+                WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
+            ]
         });
 
         WotGraph::new(nodes).unwrap()

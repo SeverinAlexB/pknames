@@ -4,115 +4,10 @@ use std::hash::Hash;
 
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
-pub enum WotNodeType {
-    WotFollowNode {
-        follows: Vec<WotFollow>,
-    },
-    WotClass {},
-    
-    WotTempNode {
-        follows: Vec<WotFollow>
-    }
-}
-
-impl WotNodeType {
-    pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
-        match self {
-            WotNodeType::WotClass{..} => {
-                None
-            },
-            WotNodeType::WotFollowNode {follows, ..} => {
-                Some(follows)
-            },
-            WotNodeType::WotTempNode { follows } => {
-                Some(follows)
-            }
-        }
-    }
-
-    pub fn get_follows_mut(&mut self) -> Option<&mut Vec<WotFollow>> {
-        match self {
-            WotNodeType::WotClass{..} => {
-                None
-            },
-            WotNodeType::WotFollowNode {follows, ..} => {
-                Some(follows)
-            },
-            WotNodeType::WotTempNode { follows } => {
-                Some(follows)
-            }
-        }
-    }
-
-    /**
-     * Remove all follows
-     */
-    pub fn clear_follows(&mut self) {
-        match self {
-            WotNodeType::WotClass{..} => {},
-            WotNodeType::WotFollowNode {follows, ..} => {
-                follows.clear();
-            },
-            WotNodeType::WotTempNode { follows } => {
-                follows.clear();
-            }
-        };
-    }
-
-    /**
-     * Extend follows
-     */
-    pub fn extend_follows(&mut self, new_follows: Vec<WotFollow>) {
-        if new_follows.len() == 0 {
-            return;
-        }
-        match self {
-            WotNodeType::WotClass{..} => {
-                panic!("Can't set follows of a WotClass node.")
-            },
-            WotNodeType::WotFollowNode {follows, ..} => {
-                follows.extend(new_follows.into_iter());
-            },
-            WotNodeType::WotTempNode { follows } => {
-                follows.extend(new_follows.into_iter());
-            }
-        };
-    }
-
-}
-
-impl fmt::Display for WotNodeType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let follows = self.get_follows();
-        let follow_str = match follows {
-            None => String::from(""),
-            Some(follows) => {
-                let strings: Vec<String> = follows.iter().map(|follow| format!("{}: {}", follow.target_pubkey, follow.weight)).collect();
-                strings.join(", ")
-            }
-        };
-
-        match self {
-            WotNodeType::WotTempNode { .. } => {
-                write!(f, "temp follows {:?}", follow_str)
-            },
-            WotNodeType::WotClass { .. } => {
-                write!(f, "class")
-            },
-            WotNodeType::WotFollowNode { .. } => {
-                write!(f, "follows {}", follow_str)
-            }
-        }
-        
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct WotNode {
     pub pubkey: String,
     pub alias: String,
-    pub typ: WotNodeType
+    pub follows: Vec<WotFollow>
 }
 
 impl fmt::Display for WotNode {
@@ -121,7 +16,7 @@ impl fmt::Display for WotNode {
         if self.alias.len() > 0 {
             name = format!("{} ({})", self.alias, name);
         }
-        write!(f, "{} {}", name, self.typ)
+        write!(f, "{}", name)
     }
 }
 
@@ -131,7 +26,7 @@ impl WotNode {
         WotNode {
             pubkey,
             alias,
-            typ: WotNodeType::WotClass{}
+            follows: vec![]
         }
     }
 
@@ -139,25 +34,47 @@ impl WotNode {
         WotNode {
             pubkey,
             alias,
-            typ: WotNodeType::WotFollowNode { follows }
+            follows: follows 
         }
     }
 
+    pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
+        // Todo: Remove option
+        Some(&self.follows)
+    }
+
+    pub fn get_follows_mut(&mut self) -> Option<&mut Vec<WotFollow>> {
+        // Todo: Remove option
+        Some(&mut self.follows)
+    }
+
+    /**
+     * Remove all follows
+     */
+    pub fn clear_follows(&mut self) {
+        self.follows.clear();
+    }
+
+    /**
+     * Extend follows
+     */
+    pub fn extend_follows(&mut self, new_follows: Vec<WotFollow>) {
+        if new_follows.len() == 0 {
+            return;
+        }
+        self.follows.extend(new_follows.into_iter());
+    }
+
     pub fn get_follow(&self, target_pubkey: &str) -> Option<&WotFollow> {
-        let follows = self.typ.get_follows()?;
-        let found = follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
+        let found = self.follows.iter().find(|&follow| follow.target_pubkey == target_pubkey);
         found
     }
 
     pub fn get_follow_mut(&mut self, target_pubkey: &str) -> Option<&mut WotFollow> {
-        let follows = self.typ.get_follows_mut()?;
-        let found = follows.iter_mut().find(| follow| follow.target_pubkey == target_pubkey);
+        let found = self.follows.iter_mut().find(| follow| follow.target_pubkey == target_pubkey);
         found
     }
 
-    pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
-        self.typ.get_follows()
-    }
 
     /**
      * Finds a WotNode in a Vec<&WotNode>

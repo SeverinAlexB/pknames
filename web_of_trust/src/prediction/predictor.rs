@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt};
 
 use burn::tensor::{Data, Shape};
 
-use super::{graph::WotGraph, feed_forward::FeedForward, node::{WotNode, WotFollow, WotNodeType}};
+use super::{graph::WotGraph, feed_forward::FeedForward, node::{WotNode, WotFollow}};
 
 pub struct WotPredictionResult {
     map: HashMap<String, f32>
@@ -123,9 +123,7 @@ impl WotPredictor {
                         let temp = WotNode{
                             pubkey: follow.target_pubkey.clone(),
                             alias: "".to_string(),
-                            typ: super::node::WotNodeType::WotTempNode { 
-                                follows:  vec![WotFollow::new(follow.target_pubkey.clone(), follow.target_pubkey.clone(), 1.0, None)]
-                            },
+                            follows:  vec![WotFollow::new(follow.target_pubkey.clone(), follow.target_pubkey.clone(), 1.0, None)]
                         };
                         current_layer.push(temp);
                     }
@@ -138,11 +136,12 @@ impl WotPredictor {
     }
 
     fn two_layers_to_weights(&self, previous_layer: &Vec<WotNode>, current_layer: &Vec<WotNode>) -> Data<f32, 2> {
-        let is_last_layer = if let WotNodeType::WotClass{..} = current_layer[0].clone().typ {
-            true
-        } else {
-            false
-        };
+        let is_last_layer = current_layer[0].follows.len() == 0;
+        // let is_last_layer = if let WotNodeType::WotClass{..} = current_layer[0].clone().typ {
+        //     true
+        // } else {
+        //     false
+        // };
         let weights: Vec<Vec<f32>> = previous_layer.iter().map(|previous| {
             current_layer.iter().map(|current| {
                 let follow = previous.get_follow(&current.pubkey);
@@ -188,13 +187,13 @@ impl WotPredictor {
                 let previous_node = &previous_layer[x];
                 for y in 0..current_layer.len() {
                     let current_node = &current_layer[y];
-
-                    let is_last_layer = match &current_node.typ {
-                        WotNodeType::WotClass{..} => {
-                            true
-                        },
-                        _ => false
-                    };
+                    let is_last_layer = current_node.follows.len() == 0;
+                    // let is_last_layer = match &current_node.typ {
+                    //     WotNodeType::WotClass{..} => {
+                    //         true
+                    //     },
+                    //     _ => false
+                    // };
 
                     let index = x*current_layer.len() + y;
                     let mut weight = weights.value[index];
@@ -227,7 +226,7 @@ mod tests {
 
     use crate::prediction::predictor::WotPredictor;
 
-    use super::super::node::{WotNode, WotNodeType, WotFollow};
+    use super::super::node::{WotNode, WotFollow};
     use super::WotGraph;
     use assert_approx_eq::assert_approx_eq;
 
@@ -241,45 +240,39 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![],
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![],
         });
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
+            follows: vec![
                     WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
                     WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string()))
                 ]
-            },
         });
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
+            follows: vec![
                     WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
                     WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string()))
                 ]
-            },
         });
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
+            follows: vec![
                     WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
                     WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
                 ]
-            },
         });
 
         WotGraph::new(nodes).unwrap()
@@ -292,54 +285,46 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![],
         });
         nodes.push(WotNode {
             pubkey: "d2".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![],
         });
 
         nodes.push(WotNode {
             pubkey: "n3".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n1".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
-                    WotFollow::new("n1".to_string(), "d2".to_string(), 1.0, Some("example.com".to_string()))
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n1".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
+                WotFollow::new("n1".to_string(), "d2".to_string(), 1.0, Some("example.com".to_string()))
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n2".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string()))
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string()))
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "n1".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("n1".to_string(), "n3".to_string(), 1.0, None),
-                ]
-            },
+            follows: vec![
+                WotFollow::new("n1".to_string(), "n3".to_string(), 1.0, None),
+            ]
         });
 
         nodes.push(WotNode {
             pubkey: "me".to_string(),
             alias: "".to_string(),
-            typ: WotNodeType::WotFollowNode {
-                follows: vec![
-                    WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
-                    WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
-                ]
-            },
+            follows: vec![
+                WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
+                WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
+            ]
         });
 
         WotGraph::new(nodes).unwrap()

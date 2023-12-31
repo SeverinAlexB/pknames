@@ -1,4 +1,4 @@
-use super::{node::{WotNode, WotFollow, WotNodeType}, predictor::WotPredictor};
+use super::{node::{WotNode, WotFollow}, predictor::WotPredictor};
 use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone)]
@@ -123,23 +123,24 @@ impl WotGraph {
     }
 
     pub fn get_classes(&self) -> Vec<&WotNode> {
-        let result: Vec<&WotNode> = self.nodes.iter().filter(|n| {
-            if let WotNodeType::WotClass{..} = n.typ {
-                true
-            } else {
-                false
-            }
+        let classes_pubkeys: HashSet<String> = self.nodes.iter().map(|node| {
+            let class_pubkeys: Vec<String> = node.follows.iter().filter(|follow| {
+                follow.attribution.is_some()
+            }).map(|follow| {
+                follow.target_pubkey.clone()
+            }).collect();
+            class_pubkeys
+        }).flatten().collect();
+
+        let nodes: Vec<&WotNode> = classes_pubkeys.into_iter().filter_map(|pubkey| {
+            self.get_node(pubkey.as_str())
         }).collect();
-        result
+        nodes
     }
 
     pub fn get_follow_nodes(&self) -> Vec<&WotNode> {
         let result: Vec<&WotNode> = self.nodes.iter().filter(|n| {
-            if let WotNodeType::WotFollowNode { .. } = n.typ {
-                true
-            } else {
-                false
-            }
+            n.follows.len() > 0
         }).collect();
         result
     }
@@ -207,7 +208,7 @@ impl From<WotPredictor> for WotGraph {
 
 #[cfg(test)]
 mod tests {
-    use super::super::node::{WotNode, WotNodeType, WotFollow};
+    use super::super::node::{WotNode, WotFollow};
     use super::WotGraph;
 
     /**
@@ -252,12 +253,12 @@ mod tests {
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com1"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![],
         });
         nodes.push(WotNode {
             pubkey: "d1".to_string(),
             alias: String::from("example.com2"),
-            typ: WotNodeType::WotClass{},
+            follows: vec![],
         });
         let result = WotGraph::new(nodes);
         assert!(result.is_err());
@@ -277,8 +278,8 @@ mod tests {
         let graph = get_simple_graph();
         let classes = graph.get_classes();
         assert_eq!(classes.len(), 2);
-        assert_eq!(classes[0].pubkey, "d1");
-        assert_eq!(classes[1].pubkey, "d2");
+        assert_eq!(classes[0].pubkey, "d2");
+        assert_eq!(classes[1].pubkey, "d1");
     }
 
     #[test]
