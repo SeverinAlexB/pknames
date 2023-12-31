@@ -1,8 +1,7 @@
 
 use eframe::{run_native, App, CreationContext};
 use egui::Context;
-use egui_graphs::{
-    DefaultEdgeShape, DefaultNodeShape, GraphView, SettingsInteraction, SettingsStyle, Graph,
+use egui_graphs::{GraphView, SettingsInteraction, SettingsStyle, Graph,
 };
 
 use std::collections::HashMap;
@@ -10,16 +9,25 @@ use std::collections::HashMap;
 
 use petgraph::{stable_graph::{NodeIndex, StableGraph, DefaultIx}, Directed};
 
-use crate::{prediction::{node::{WotFollow, WotNode}, graph::WotGraph}, node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
+use crate::{prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPredictionResult}, node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
+
+#[derive(Clone)]
+pub struct PredictedVisWotNode {
+    pub node: WotNode,
+    pub power: Option<f32>
+}
 
 
-impl Into<Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>> for WotGraph {
-    fn into(self) -> Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> {
-        let mut g: StableGraph<WotNode, WotFollow> = StableGraph::new();
+impl Into<Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>> for WotGraph {
+    fn into(self) -> Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> {
+        let mut g: StableGraph<PredictedVisWotNode, WotFollow> = StableGraph::new();
         let mut node_map: HashMap<String, NodeIndex> = HashMap::new();
         for node in self.nodes.iter() {
-            let copy = node.clone();
-            let index = g.add_node(copy);
+            let vis_node = PredictedVisWotNode {
+                node: node.clone(),
+                power: None
+            };
+            let index = g.add_node(vis_node);
             node_map.insert(node.pubkey.clone(), index);
         }
 
@@ -38,14 +46,14 @@ impl Into<Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEd
         // Set label
         for index in node_indexes.iter() {
             let payload = graph.node(*index).unwrap().payload();
-            if payload.pubkey == "pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy" {
+            if payload.node.pubkey == "pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy" {
                 println!("");
             }
-            let attributions = self.get_attributions(&payload.pubkey);
+            let attributions = self.get_attributions(&payload.node.pubkey);
             let attribution_alias = Vec::from_iter(attributions.into_iter()).join(", ");
-            let mut label = payload.pubkey[..8].to_string();
-            if payload.alias.len() > 0 {
-                label = format!("{} {}", label, payload.alias);
+            let mut label = payload.node.pubkey[..8].to_string();
+            if payload.node.alias.len() > 0 {
+                label = format!("{} {}", label, payload.node.alias);
             };
             if attribution_alias.len() > 0 {
                 label = format!("{} ({})", label, attribution_alias);
@@ -60,11 +68,11 @@ impl Into<Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEd
 
 
 struct InteractiveApp {
-    graph: Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>,
+    graph: Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>,
 }
 
 impl InteractiveApp {
-    pub fn new(cc: &CreationContext<'_>, graph: Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>) -> Self {
+    pub fn new(cc: &CreationContext<'_>, graph: Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape>) -> Self {
         Self { graph }
     }
 }
@@ -96,8 +104,25 @@ impl App for InteractiveApp {
 /**
  * Show a GUI that visualized the graph in a simple way.
  */
-pub fn visualize_graph(graph: WotGraph, title: &str) -> () {
-    let egui_graph: Graph<WotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> = graph.into();
+pub fn visualize_graph(graph: WotGraph, title: &str, result: Option<WotPredictionResult>) -> () {
+
+    let mut egui_graph: Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> = graph.into();
+
+    if let Some(res) = result {
+        let node_indexes: Vec<petgraph::prelude::NodeIndex> =
+        egui_graph.nodes_iter().map(|(index, _)| index).collect();
+    
+        // Set power if available
+        for index in node_indexes.iter() {
+            let node = egui_graph.node_mut(*index).unwrap();
+            let payload = node.payload();
+            let val = res.get_value(&payload.node.pubkey);
+            node.display_mut().power = val;
+        };
+    }
+
+
+
 
     let native_options = eframe::NativeOptions::default();
     run_native(

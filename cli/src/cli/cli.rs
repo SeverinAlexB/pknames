@@ -17,6 +17,7 @@ pub fn run_cli() {
         .subcommand(
             clap::Command::new("lookup")
             .about("Lookup the pubkey of a domain.")
+            .arg(clap::Arg::new("ui").short('u').long("ui").required(false).num_args(0).help("Show graph in a ui frame."))
             .arg(clap::Arg::new("domain").required(true).help("Domain to resolve. For example: example.com."))
         )
         .subcommand(

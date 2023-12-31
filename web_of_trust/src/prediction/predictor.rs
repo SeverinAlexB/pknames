@@ -4,6 +4,7 @@ use burn::tensor::{Data, Shape};
 
 use super::{graph::WotGraph, feed_forward::FeedForward, node::{WotNode, WotFollow}};
 
+#[derive(Clone)]
 pub struct WotPredictionResult {
     map: HashMap<String, f32>
 }
@@ -30,7 +31,7 @@ impl WotPredictionResult {
         match option {
             None => None,
             Some(val) => {
-                Some(*val)
+                Some(val.clone())
             }
         }
     }

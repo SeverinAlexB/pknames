@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::ArgMatches;
-use fancyd_wot::prediction::{graph_pruner::GraphPruner, predictor::WotPredictor};
+use fancyd_wot::{prediction::{graph_pruner::GraphPruner, predictor::WotPredictor}, visualization::visualize_graph};
 
 use crate::cli::{config_directory::main_directory::MainDirectory, wot_transformer::WotTransformer};
 
@@ -25,10 +25,15 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let graph = GraphPruner::prune(graph, domain, public_key.as_str());
     println!("Graph pruned {}", graph);
 
-    let predictor: WotPredictor = graph.into();
+    let predictor: WotPredictor = graph.clone().into();
     let result = predictor.predict();
 
     println!("Result {}", result);
+    let show_gui: bool = *matches.get_one("ui").unwrap();
+    if show_gui {
+        visualize_graph(graph, "Lookup domain", Some(result));
+    };
+
 
 
 

@@ -38,7 +38,6 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
             println!("Prune graph for domain {}", domain);
             graph = GraphPruner::prune(graph, domain, &dir.get_zbase32_public_key());
         }
-        visualize_graph(graph, "fancy-cli ls");
-        // todo!("GUI visualization")
+        visualize_graph(graph, "fancy-cli ls", None);
     }
 }

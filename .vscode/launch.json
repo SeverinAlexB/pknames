@@ -20,8 +20,8 @@
                 }
             },
             "args": [
-                "ls",
-                "--ui",
+                "lookup",
+                "example.com",
             ],
             "cwd": "${workspaceFolder}"
         },
