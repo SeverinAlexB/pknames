@@ -14,11 +14,12 @@ impl fmt::Display for WotNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut name = self.pubkey.clone();
         if self.alias.len() > 0 {
-            name = format!("{} ({})", self.alias, name);
+            name = format!("{} ({})", name, self.alias);
         }
         write!(f, "{}", name)
     }
 }
+
 
 impl WotNode {
 
@@ -36,23 +37,6 @@ impl WotNode {
             alias,
             follows: follows 
         }
-    }
-
-    pub fn get_follows(&self) -> Option<&Vec<WotFollow>> {
-        // Todo: Remove option
-        Some(&self.follows)
-    }
-
-    pub fn get_follows_mut(&mut self) -> Option<&mut Vec<WotFollow>> {
-        // Todo: Remove option
-        Some(&mut self.follows)
-    }
-
-    /**
-     * Remove all follows
-     */
-    pub fn clear_follows(&mut self) {
-        self.follows.clear();
     }
 
     /**
@@ -74,7 +58,6 @@ impl WotNode {
         let found = self.follows.iter_mut().find(| follow| follow.target_pubkey == target_pubkey);
         found
     }
-
 
     /**
      * Finds a WotNode in a Vec<&WotNode>
@@ -143,7 +126,7 @@ impl fmt::Display for WotFollow {
 
 impl PartialEq for WotFollow {
     fn eq(&self, other: &Self) -> bool {
-        self.target_pubkey == other.target_pubkey && self.source_pubkey == other.source_pubkey
+        self.target_pubkey == other.target_pubkey && self.source_pubkey == other.source_pubkey && self.attribution == other.attribution
     }
 }
 

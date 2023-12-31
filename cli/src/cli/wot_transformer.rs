@@ -4,7 +4,7 @@ use fancyd_wot::prediction::{node::{WotNode, WotFollow}, graph::WotGraph};
 
 use super::follow_list::{FollowList, Follow};
 
-struct WotTransformer {
+pub struct WotTransformer {
     lists: Vec<FollowList>
 }
 
@@ -134,7 +134,7 @@ mod tests {
         assert_eq!(nodes.len(), 2);
         let first = nodes.get(0).unwrap();
         assert_eq!(first.pubkey, "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string());
-        let follows = first.get_follows().unwrap();
+        let follows = first.follows.clone();
         assert_eq!(follows.len(), 5);
         assert!(follows[0].attribution.is_none());
         assert_eq!(follows.get(1).unwrap().clone().attribution.unwrap(), "example.com1".to_string());

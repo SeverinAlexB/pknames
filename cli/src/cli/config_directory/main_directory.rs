@@ -146,6 +146,14 @@ impl MainDirectory {
         }
     }
 
+    /**
+     * zbase32 public key in format pk:...
+     */
+    pub fn get_zbase32_public_key(&self) -> String {
+        let pair = self.read_keypair().expect("KeyPair exists.");
+        format!("pk:{}", pair.public_key().to_z32())
+    }
+
 }
 
 #[cfg(test)]

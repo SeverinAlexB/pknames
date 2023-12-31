@@ -25,20 +25,32 @@ impl Into<Graph<WotNode, WotFollow>> for WotGraph {
         }
 
         for node in self.nodes.iter() {
-            if let Some(follows) = node.get_follows() {
-                for follow in follows.iter() {
-                    let source_index = node_map.get(&follow.source_pubkey).unwrap().clone();
-                    let target_index = node_map.get(&follow.target_pubkey).unwrap().clone();
-                    g.add_edge(source_index, target_index, follow.clone());
-                }
+            for follow in node.follows.iter() {
+                let source_index = node_map.get(&follow.source_pubkey).unwrap().clone();
+                let target_index = node_map.get(&follow.target_pubkey).unwrap().clone();
+                g.add_edge(source_index, target_index, follow.clone());
             };
         }
 
         let mut graph = Graph::from(&g);
         let node_indexes: Vec<petgraph::prelude::NodeIndex> =
             graph.nodes_iter().map(|(index, _)| index).collect();
+
+        // Set label
         for index in node_indexes.iter() {
-            let label = graph.node_mut(*index).unwrap().payload().pubkey.clone();
+            let payload = graph.node(*index).unwrap().payload();
+            if payload.pubkey == "pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy" {
+                println!("");
+            }
+            let attributions = self.get_attributions(&payload.pubkey);
+            let attribution_alias = Vec::from_iter(attributions.into_iter()).join(", ");
+            let mut label = payload.pubkey[..8].to_string();
+            if payload.alias.len() > 0 {
+                label = format!("{} {}", label, payload.alias);
+            };
+            if attribution_alias.len() > 0 {
+                label = format!("{} ({})", label, attribution_alias);
+            }
             graph.node_mut(*index).unwrap().set_label(label);
         }
 

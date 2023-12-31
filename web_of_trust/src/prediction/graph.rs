@@ -48,12 +48,12 @@ impl WotGraph {
     fn is_well_connected(&self) -> bool {
         let mut is_target_missing = false;
         'outer: for node in self.nodes.iter() {
-            let follows = node.get_follows();
-            if follows.is_none() {
+            let follows = &node.follows;
+            if follows.len() == 0 {
                 continue;
             }
 
-            for follow in follows.unwrap().iter() {
+            for follow in follows.iter() {
                 let target = self.get_node(&follow.target_pubkey);
                 if target.is_none() {
                     is_target_missing = true;
@@ -89,11 +89,25 @@ impl WotGraph {
     }
 
     /**
+     * Get attributions pointing to a pubkey.
+     */
+    pub fn get_attributions(&self, node_pubkey: &str) -> HashSet<String> {
+        let follows = self.get_follows_by_target_pubkey(node_pubkey);
+        follows.into_iter().filter_map(|follow| follow.attribution.clone()).collect()
+    }
+
+    /**
      * Get all unique follows
      */
     pub fn get_follows(&self) -> HashSet<&WotFollow> {
-        let set: HashSet<&WotFollow, _> = self.nodes.iter().filter_map(|node| node.get_follows()).flatten().collect();
+        let set: HashSet<&WotFollow, _> = self.nodes.iter().map(|node| &node.follows).flatten().collect();
         set
+    }
+
+    pub fn get_follows_by_target_pubkey(&self, target_pubkey: &str) -> Vec<&WotFollow> {
+        self.get_follows().into_iter().filter(|follow| {
+            follow.target_pubkey == target_pubkey
+        }).collect()
     }
 
     /**
@@ -109,17 +123,6 @@ impl WotGraph {
      */
     pub fn get_node(&self, pubkey: &str) -> Option<&WotNode> {
         WotNode::binary_search(pubkey, &self.nodes)
-    }
-
-    /**
-     * Returns the me node. Panics if not found.
-     */
-    pub fn get_me_node(&self) -> &WotNode {
-        let me = self.get_node("me");
-        match me {
-            None => panic!("Me node is missing in this graph."),
-            Some(node) => node
-        }
     }
 
     pub fn get_classes(&self) -> Vec<&WotNode> {
@@ -161,11 +164,10 @@ impl WotGraph {
             let mut current_layer: Vec<&WotNode> = Vec::new();
             for node in remaining_nodes.iter() {
                 let is_leaf_node;
-                let follows = node.get_follows();
-                if follows.is_none() {
+                if node.follows.len() == 0 {
                     is_leaf_node = true
                 } else {
-                    let target_node = follows.unwrap().iter().find(|follow| {
+                    let target_node = node.follows.iter().find(|follow| {
                         let target_node = WotNode::binary_search_ref(&follow.target_pubkey, &remaining_nodes);
                         target_node.is_some()
                     });

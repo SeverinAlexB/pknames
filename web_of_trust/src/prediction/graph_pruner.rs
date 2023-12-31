@@ -1,3 +1,4 @@
+use core::panic;
 use std::{collections::{HashSet, HashMap}, fmt};
 
 use super::{graph::WotGraph, node::{WotNode, WotFollow}};
@@ -10,26 +11,36 @@ use super::{graph::WotGraph, node::{WotNode, WotFollow}};
  * 
  * Todo: Research if this type of pruning cycles can be abused to influence the web of trust.
  * https://github.com/zhenv5/breaking_cycles_in_noisy_hierarchies
+ * 
+ * Note to myself: Refactoring required.
  */
 pub struct GraphPruner<'a> {
     graph: &'a WotGraph,
     found_paths: Vec<Vec<&'a WotNode>>,
     pruned_cycle_follows: Vec<& 'a WotFollow>,
-    visited: Vec<String>
+    visited: Vec<String>,
+    me_pubkey: String
 }
 
+
+
 impl<'a> GraphPruner<'a> {
-    pub fn new(graph: &'a WotGraph) -> Self {
+    fn new(graph: &'a WotGraph, me_pubkey: String) -> Self {
+        if let None = graph.get_node(&me_pubkey) {
+            panic!("me_pubkey not found in graph");
+        };
+
         GraphPruner{
             graph,
             found_paths: vec![],
             pruned_cycle_follows: vec![],
-            visited: vec![]
+            visited: vec![],
+            me_pubkey
         }
     }
 
     fn get_start_node(&self)-> &'a WotNode {
-        self.graph.get_me_node()
+        self.graph.get_node(&self.me_pubkey).expect("me_pubkey must be in graph")
     }
 
     fn dfs(&mut self, current: &'a WotNode, current_path: & mut Vec<&'a WotNode>, end: &'a WotNode) {
@@ -38,25 +49,28 @@ impl<'a> GraphPruner<'a> {
         if current.pubkey == end.pubkey {
             self.found_paths.push(current_path.to_vec());
         } else {
-            if let Some(follows) = current.get_follows() {
-                for follow in follows {
-                    let is_pruned = self.pruned_cycle_follows.contains(&follow);
-                    if is_pruned {
-                        continue;
-                    };
+            for follow in current.follows.iter() {
+                let is_pruned = self.pruned_cycle_follows.contains(&follow);
+                if is_pruned {
+                    continue;
+                };
 
-                    let target_node = self.graph.get_node(&follow.target_pubkey).unwrap();
-                    let is_new_cyle = current_path.contains(&target_node);
-                    if is_new_cyle {
-                        self.pruned_cycle_follows.push(follow);
-                    };
+                let target_node_option = self.graph.get_node(&follow.target_pubkey);
+                if let None = target_node_option {
+                    // We don't have any data about the target node. Skip
+                    continue;
+                }
+                let target_node = self.graph.get_node(&follow.target_pubkey).unwrap();
+                let is_new_cyle = current_path.contains(&target_node);
+                if is_new_cyle {
+                    self.pruned_cycle_follows.push(follow);
+                };
 
-                    let has_been_visited = self.visited.contains(&target_node.pubkey);
-                    if !has_been_visited {
-                        current_path.push(target_node);
-                        self.dfs(target_node, current_path, end);
-                        current_path.pop();
-                    }
+                let has_been_visited = self.visited.contains(&target_node.pubkey);
+                if !has_been_visited {
+                    current_path.push(target_node);
+                    self.dfs(target_node, current_path, end);
+                    current_path.pop();
                 }
             };
         }
@@ -65,14 +79,14 @@ impl<'a> GraphPruner<'a> {
     }
 
     /**
-     * Prunes all attributions that are not equal to `attribution`.
+     * Prunes all attributions that are not equal to `attribution`
      */
-    fn prune_unequal_attributions(mut graph: WotGraph, attribution: &String) -> WotGraph {
+    fn prune_unnecessary_attributions(mut graph: WotGraph, attribution: &str) -> WotGraph {
         for node in graph.nodes.iter_mut() {
             let selected_follows: Vec<WotFollow> = node.follows.clone().into_iter().filter(|follow| {
                 match follow.attribution.clone() {
                     None => true,
-                    Some(att) => att == *attribution
+                    Some(att) => att == attribution
                 }
             }).collect();
             node.follows = selected_follows;
@@ -153,8 +167,9 @@ impl<'a> GraphPruner<'a> {
         WotGraph::new(nodes).unwrap()
     }
 
-    pub fn prune(graph: &WotGraph) -> WotGraph {
-        let mut pruner = GraphPruner::new(graph);
+    pub fn prune(graph: WotGraph, attribution: &str, me_pubkey: &str) -> WotGraph {
+        let graph = Self::prune_unnecessary_attributions(graph, attribution);
+        let mut pruner = GraphPruner::new(&graph, me_pubkey.to_string());
         pruner.search_paths();
         let pruned = pruner.clone_and_prune();
         pruned
@@ -206,7 +221,7 @@ mod tests {
             follows: vec![
                 WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
                 WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
-                WotFollow::new("n2".to_string(), "n3".to_string(), -1.0, Some("example.com".to_string())),
+                WotFollow::new("n2".to_string(), "n3".to_string(), -1.0, None),
             ]
         });
 
@@ -241,7 +256,7 @@ mod tests {
     }
     
 
-    fn get_critical_graph() -> WotGraph {
+    fn get_complex_graph() -> WotGraph {
         let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
@@ -286,7 +301,8 @@ mod tests {
             alias: "".to_string(),
             follows: vec![
                 WotFollow::new("n4".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
-                WotFollow::new("n4".to_string(), "n2".to_string(), -0.5, Some("example.com".to_string())),
+                WotFollow::new("n4".to_string(), "n2".to_string(), -0.5, Some("apple.com".to_string())),
+                WotFollow::new("n4".to_string(), "n2".to_string(), -0.5, None),
             ]
         });
 
@@ -306,10 +322,11 @@ mod tests {
     #[test]
     fn search() {
         let graph = get_simple_graph();
-        let mut search = GraphPruner::new(&graph);
+        let mut search = GraphPruner::new(&graph, "me".to_string());
         let result = search.search_paths();
         println!("{}", search);
-        assert_eq!(result.len(), 4);
+        assert_eq!(
+            result.len(), 4);
         
         let found: HashSet<String> = search.get_found_nodes().iter().map(|n| n.pubkey.clone()).collect();
         assert_eq!(found.len(), 5);
@@ -342,15 +359,16 @@ mod tests {
     #[test]
     fn prune() {
         let graph = get_simple_graph();
-        let pruned = GraphPruner::prune(&graph);
+        let pruned = GraphPruner::prune(graph, "example.com", "me");
         assert_eq!(pruned.nodes.len(), 5);
     }
 
     #[test]
     fn search_critical_graph() {
-        let graph = get_critical_graph();
+        let graph = get_complex_graph();
+        let graph = GraphPruner::prune_unnecessary_attributions(graph, "example.com");
         // let pruned1 = GraphPruner::prune(&graph);
-        let mut search = GraphPruner::new(&graph);
+        let mut search = GraphPruner::new(&graph, "me".to_string());
         search.search_paths();
         println!("{}", search);
 

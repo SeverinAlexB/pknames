@@ -117,7 +117,7 @@ impl WotPredictor {
             };
 
             for previous_node in previous_layer.iter() {
-                for follow in previous_node.get_follows().unwrap().iter() {
+                for follow in previous_node.follows.iter() {
                     let target_node_in_next_layer = current_layer_map.get(&follow.target_pubkey);
                     if let None = target_node_in_next_layer {
                         let temp = WotNode{

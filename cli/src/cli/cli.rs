@@ -22,7 +22,8 @@ pub fn run_cli() {
         .subcommand(
             clap::Command::new("ls")
             .about("List your follow lists.")
-            .arg(clap::Arg::new("gui").short('g').long("gui").required(false).num_args(0).help("Show follows in a gui frame."))
+            .arg(clap::Arg::new("ui").short('u').long("ui").required(false).num_args(0).help("Show graph in a ui frame."))
+            .arg(clap::Arg::new("domain").short('d').long("domain").required(false).help("Prune graph by domain."))
         ).subcommand(
             clap::Command::new("getinfo")
             .about("General information."),

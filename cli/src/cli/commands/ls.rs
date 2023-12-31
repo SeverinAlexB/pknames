@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use clap::ArgMatches;
-use crate::cli::config_directory::main_directory::MainDirectory;
+use fancyd_wot::{visualization::visualize_graph, prediction::graph_pruner::GraphPruner};
+use crate::cli::{config_directory::main_directory::{MainDirectory, self}, wot_transformer::WotTransformer};
 
 
 pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
@@ -23,9 +24,21 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
         println!("");
     }
 
-    let show_gui: bool = *matches.get_one("gui").unwrap();
+    let default_value = "".to_string();
+    let domain: &String = matches.get_one("domain").unwrap_or(&default_value);
+
+    // println!("domain {}", val);
+
+    let show_gui: bool = *matches.get_one("ui").unwrap();
     if show_gui {
         let lists = dir.static_lists_dir.read_valid_lists();
-        todo!("GUI visualization")
+        let transformer = WotTransformer::new(lists);
+        let mut graph = transformer.get_graph();
+        if domain.len() > 0 {
+            println!("Prune graph for domain {}", domain);
+            graph = GraphPruner::prune(graph, domain, &dir.get_zbase32_public_key());
+        }
+        visualize_graph(graph, "fancy-cli ls");
+        // todo!("GUI visualization")
     }
 }
