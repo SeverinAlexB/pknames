@@ -1,3 +1,5 @@
+use std::{collections::HashSet, hash::{Hash, Hasher}};
+
 use serde::{Deserialize, Serialize, Serializer};
 
 #[derive(Serialize, Deserialize)]
@@ -19,7 +21,7 @@ impl std::fmt::Display for FollowList {
             name = format!("{} ({})", name, self.alias);
         }
         let follow_strings: Vec<String> = self
-            .follows
+            .get_unique_follows()
             .iter()
             .map(|follow| format!("- {}", { follow }))
             .collect();
@@ -43,13 +45,27 @@ impl FollowList {
         }
     }
 
-    pub fn target_domains(&self) -> Vec<&Follow> {
-        self.follows.iter().filter(|f| f.domain().is_some()).collect()
+    pub fn get_unique_follows(&self) -> HashSet<&Follow> {
+        let set: HashSet<&Follow> = HashSet::from_iter(self.follows.iter());
+        set
     }
 
-    pub fn target_lists(&self) -> Vec<&Follow> {
-        self.follows.iter().filter(|f| f.domain().is_none()).collect()
+    /**
+     * Retuns all pubkeys in this list
+     */
+    pub fn get_all_pubkeys(&self) -> HashSet<String> {
+        let mut set: HashSet<String> = self.follows.iter().map(|follow| follow.pubkey().clone()).collect();
+        set.insert(self.pubkey.clone());
+        set
     }
+
+    // pub fn target_domains(&self) -> Vec<&Follow> {
+    //     self.follows.iter().filter(|f| f.domain().is_some()).collect()
+    // }
+
+    // pub fn target_lists(&self) -> Vec<&Follow> {
+    //     self.follows.iter().filter(|f| f.domain().is_none()).collect()
+    // }
 
     pub fn to_json(&self) -> String {
         serde_json::to_string_pretty(&self).unwrap()
@@ -59,32 +75,6 @@ impl FollowList {
         let l: Result<FollowList, serde_json::Error> = serde_json::from_str(json);
         l
     }
-
-    // pub fn into_wot_graph(lists: Vec<Self>) -> WotGraph {
-    //     // What happens if two people announce the same pubkey but they claim it is a different domain?
-    //     let all: Vec<&Follow> = lists.iter().map(|list| &list.follows).flatten().collect();
-    //     let domains: Vec<&Follow> = all.iter().filter_map(|follow| {
-    //         if follow.domain().is_some() {
-    //             Some(*follow)
-    //         } else {
-    //             None
-    //         }
-    //     }).collect();
-
-    //     let lists = all.iter().filter_map(|follow| {
-    //         if follow.domain().is_none() {
-    //             Some(*follow)
-    //         } else {
-    //             None
-    //         }
-    //     }).collect();
-
-    //     let class_nodes: HashMap<String, WotNode> = HashMap::new();
-    //     for domain in domains.into_iter() {
-    //         let node: WotNode = (*domain).into();
-            
-    //     };
-    // }
 }
 
 
@@ -146,15 +136,19 @@ impl Follow {
 
 }
 
-// impl Into<WotNode<(), ()> for Follow {
-//     fn into(self) -> WotNode<(), ()> {
-//         if self.domain().is_some() {
-//             WotNode::new_class(self.0, self.2, ())
-//         } else {
-//             WotNode::new_list(self.0, self.2, vec![], ())
-//         }
-//     }
-// }
+impl PartialEq for Follow {
+    fn eq(&self, other: &Self) -> bool {
+        self.pubkey() == other.pubkey() && self.domain() == other.domain()
+    }
+}
+impl Eq for Follow {}
+
+impl Hash for Follow {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.pubkey().hash(state);
+        self.domain().hash(state);
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -198,5 +192,21 @@ mod tests {
         assert_eq!(list.pubkey, "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso");
         assert_eq!(list.follows.len(), 2);
         assert_eq!(list.follows[0].0, "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy");
+    }
+
+    #[test]
+    fn unique_follows() {
+        let follows = vec![
+            Follow("1".to_string(), 1.0, None),
+            Follow("1".to_string(), 1.0, Some("example.com".to_string())),
+            Follow("1".to_string(), 0.1, Some("example.com".to_string())),
+        ];
+        let list = FollowList{
+            follows,
+            pubkey: "me".to_string(),
+            alias: "".to_string()
+        };
+        let unique: Vec<&Follow> = Vec::from_iter(list.get_unique_follows().into_iter());
+        assert_eq!(unique.len(), 2);
     }
 }

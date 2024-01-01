@@ -1,5 +1,5 @@
 use cli::cli::run_cli;
-use fancyd_wot::{prediction::{graph::WotGraph, node::{WotNode, WotFollow}, graph_pruner::GraphPruner}, visualization::visualize_graph};
+use fancyd_wot::{prediction::{graph::WotGraph, node::{WotNode, WotFollow}, graph_pruner::GraphPruner}, visualization::visualization::visualize_graph};
 
 mod cli;
 

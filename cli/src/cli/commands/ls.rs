@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use clap::ArgMatches;
-use fancyd_wot::{visualization::visualize_graph, prediction::graph_pruner::GraphPruner};
+use fancyd_wot::{visualization::visualization::visualize_graph, prediction::graph_pruner::GraphPruner};
 use crate::cli::{config_directory::main_directory::{MainDirectory, self}, wot_transformer::WotTransformer};
 
 

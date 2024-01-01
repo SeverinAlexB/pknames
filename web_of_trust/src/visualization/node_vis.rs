@@ -5,7 +5,9 @@ use egui::{
 use egui_graphs::{DisplayNode, DrawContext, NodeProps};
 use petgraph::{stable_graph::IndexType, EdgeType};
 
-use crate::{prediction::node::WotNode, visualization::PredictedVisWotNode};
+use super::visualization::PredictedVisWotNode;
+
+
 
 /// This is the default node shape which is used to display nodes in the graph.
 ///
@@ -62,7 +64,6 @@ impl<E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<PredictedVisWotNode, E, 
 
         let mut color = Color32::GREEN;
         if self.power.is_some() {
-
             let power = self.power.unwrap();
             if self.is_class {
                 // between 0 and 1
@@ -74,7 +75,7 @@ impl<E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<PredictedVisWotNode, E, 
                 let val = f32::min(1.0, val);
                 color = color.linear_multiply(val)
             };
-        };
+        }
 
         let stroke = if self.is_class {
             Stroke::new(5.0, Color32::BLACK)

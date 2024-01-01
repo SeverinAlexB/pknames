@@ -14,3 +14,4 @@ An experimental Web of Trust (WoT) library. WIP.
 - [ ] Reseach gameability
     - [ ] Graph cycle removal abuse
     - [ ] Distrust abuse
+    - [ ] Because somebody that claims to own a domain can't at the same time follow somebody (follows get pruned), this is gameable. Add signed claims to prevent this being abused.

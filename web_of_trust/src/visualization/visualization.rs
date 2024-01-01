@@ -9,7 +9,9 @@ use std::collections::HashMap;
 
 use petgraph::{stable_graph::{NodeIndex, StableGraph, DefaultIx}, Directed};
 
-use crate::{prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPredictionResult}, node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
+use crate::{prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPredictionResult}};
+
+use super::{node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
 
 #[derive(Clone)]
 pub struct PredictedVisWotNode {
