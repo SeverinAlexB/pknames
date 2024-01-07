@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use crate::cli::commands::{lookup::cli_lookup, ls::cli_ls};
 use std::path::{PathBuf, Path};
 
-use super::commands::getinfo::cli_getinfo;
+use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove};
 
 /**
  * Main cli entry function.
@@ -11,7 +11,6 @@ use super::commands::getinfo::cli_getinfo;
 pub fn run_cli() {
     let cmd = clap::Command::new("fancydns")
         .about("A web of trust nslookup replacement.")
-        .allow_external_subcommands(true)
         .arg(clap::Arg::new("directory").short('d').long("directory").required(false).help("FancyDns source directory.").default_value("~/.fancydns"))
         .arg(clap::Arg::new("verbose").short('v').long("verbose").required(false).num_args(0).help("Show verbose output."))
         .subcommand(
@@ -28,6 +27,17 @@ pub fn run_cli() {
         ).subcommand(
             clap::Command::new("getinfo")
             .about("General information."),
+        ).subcommand(
+            clap::Command::new("add")
+            .about("Add a follow to your list.")
+            .arg(clap::Arg::new("pubkey").required(true).help("Public key to add."))
+            .arg(clap::Arg::new("trust").required(true).help("Trust value between -1 and 1."))
+            .arg(clap::Arg::new("domain").required(false).help("Attribute a domain to this public key."))
+        ).subcommand(
+            clap::Command::new("remove")
+            .about("Remove a follow from your list.")
+            .arg(clap::Arg::new("pubkey").required(true).help("Public key to remove."))
+            .arg(clap::Arg::new("domain").required(false).help("Attributed domain."))
         );
     let matches = cmd.get_matches();
     let verbose: bool = *matches.get_one("verbose").unwrap();
@@ -52,6 +62,12 @@ pub fn run_cli() {
         },
         Some(("getinfo", matches)) => {
             cli_getinfo(matches, folder_buf, verbose);
+        },
+        Some(("add", matches)) => {
+            cli_add(matches, folder_buf, verbose);
+        },
+        Some(("remove", matches)) => {
+            cli_remove(matches, folder_buf, verbose);
         },
         _ => {
             // Default command

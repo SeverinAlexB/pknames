@@ -1,4 +1,4 @@
-use std::{collections::HashSet, hash::{Hash, Hasher}};
+use std::{collections::HashSet, hash::{Hash, Hasher}, fs, path::Path};
 
 use fancyd_wot::prediction::graph::WotGraph;
 use serde::{Deserialize, Serialize, Serializer};
@@ -33,10 +33,10 @@ impl std::fmt::Display for FollowList {
 }
 
 impl FollowList {
-    pub fn new(pubkey: String, alias: String) -> Self {
+    pub fn new(pubkey: &str, alias: &str) -> Self {
         FollowList {
-            pubkey: pubkey,
-            alias: alias,
+            pubkey: pubkey.to_string(),
+            alias: alias.to_string(),
             follows: vec![],
         }
     }
@@ -46,6 +46,19 @@ impl FollowList {
             alias: alias,
             follows: follows,
         }
+    }
+
+    pub fn from_path(path: &Path) -> Result<Self, String> {
+        let str_res = fs::read_to_string(path);
+        if let Err(e) = str_res {
+            return Err(format!("Failed to read list \"{}\". {}", path.to_str().unwrap(), e.to_string()));
+        };
+        let str = str_res.unwrap();
+        let list = FollowList::from_json(&str);
+        if let Err(e) = list {
+            return Err(format!("Failed to parse list \"{}\". {}", path.to_str().unwrap(), e.to_string()));
+        };
+        Ok(list.unwrap())
     }
 
     pub fn get_unique_follows(&self) -> HashSet<&Follow> {
@@ -106,18 +119,18 @@ impl std::fmt::Display for Follow {
             Some(_) => "🅰️ ",
             None => "📃"
         };
-        let mut name = format!("{} {}", emoji, self.pubkey());
+        let mut name = format!("{} {} {:.2}", emoji, self.pubkey(), self.1);
 
         if let Some(domain) = self.domain() {
             name = format!("{} {}", name, domain);
         };
-        write!(f, "{} {}", name, self.1)
+        write!(f, "{}", name)
     }
 }
 
 impl Follow {
-    pub fn new(target_pubkey: String, weight: f32, domain: Option<String>) -> Result<Self, &'static str> {
-        Ok(Follow(target_pubkey, weight, domain))
+    pub fn new(target_pubkey: &str, weight: f32, domain: Option<String>) -> Self {
+        Follow(target_pubkey.to_string(), weight, domain)
     }
 
     pub fn pubkey(&self) -> &String {
@@ -160,8 +173,8 @@ mod tests {
             "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
             "myList".to_string(),
             vec![
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, None).unwrap(),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com".to_string())).unwrap()
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", 1.0/3.0, None),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com".to_string()))
             ],
         );
 

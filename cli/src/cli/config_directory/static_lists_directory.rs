@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::Error;
 use std::path::{PathBuf};
 
 use crate::cli::follow_list::FollowList;
@@ -19,19 +20,25 @@ impl StaticListsDirectory {
     /**
      * Creates the directory if it does not exist.
      */
-    pub fn create_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
-        if self.path.exists() {
-            if self.path.is_dir() {
-                return Ok(());
-            } else {
-                return Err(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    "Expected directory.",
-                ));
-            }
+    pub fn create_if_it_does_not_exist(&self, me_pubkey: &str) -> Result<(), std::io::Error> {
+        if self.path.exists() && self.path.is_file() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "Expected directory.",
+            ));
+        } else if !self.path.exists() {
+            fs::create_dir(&self.path)?;
         };
-        // Create dir
-        fs::create_dir(&self.path)
+
+
+        // Create default me list
+        let me_list_path = self.derive_filename(me_pubkey);
+        if !me_list_path.exists() {
+            let new_list = FollowList::new(me_pubkey, "me");
+            self.write_list(me_pubkey, new_list)?;
+        };
+
+        Ok(())
     }
 
     /**
@@ -89,20 +96,34 @@ impl StaticListsDirectory {
         let lists: Vec<Result<FollowList, String>> = paths
             .into_iter()
             .map(|path| {
-                let str_res = fs::read_to_string(&path);
-                if let Err(e) = str_res {
-                    return Err(format!("Failed to read list \"{}\". {}", path.to_str().unwrap(), e.to_string()));
-                };
-                let str = str_res.unwrap();
-                let list = FollowList::from_json(&str);
-                if let Err(e) = list {
-                    return Err(format!("Failed to parse list \"{}\". {}", path.to_str().unwrap(), e.to_string()));
-                };
-                Ok(list.unwrap())
+                FollowList::from_path(&path)
             })
             .collect();
 
         Ok(lists)
+    }
+
+    fn derive_filename(&self, pubkey: &str) -> PathBuf {
+        let pubkey_without_pk = pubkey.replace("pk:", "");
+        let path = self.path.clone().join(format!("{}.json", pubkey_without_pk));
+        path
+    }
+
+    /**
+     * Read list from disk.
+     */
+    pub fn read_list(&self, pubkey: &str) -> Result<FollowList, String> {
+        let path = self.derive_filename(pubkey);
+        FollowList::from_path(&path)
+    }
+
+    /**
+     * Write list to disk
+     */
+    pub fn write_list(&self, pubkey: &str, list: FollowList) -> Result<(),std::io::Error> {
+        let path = self.derive_filename(pubkey);
+        let str = list.to_json();
+        fs::write(path, str)
     }
 }
 
@@ -115,26 +136,24 @@ mod tests {
 
     #[test]
     fn read_lists() {
-        let config = StaticListsDirectory::new(PathBuf::from("/tmp/fancydns827209438/static_lists"));
+        let config = StaticListsDirectory::new(PathBuf::from("/tmp/fancydns827209438"));
         let _ = config.delete(); // Delete so the test can work again even though it failed before.
-        let _ = config.create_if_it_does_not_exist();
+        let _ = config.create_if_it_does_not_exist("test");
 
         let list = FollowList::new_with_follows(
             "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
             "myList".to_string(),
             vec![
                 Follow::new(
-                    "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(),
+                    "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
                     1.0 / 3.0,
                     None
-                )
-                .unwrap(),
+                ),
                 Follow::new(
-                    "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(),
+                    "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy",
                     -1.0,
                     Some("example.com".to_string()),
-                )
-                .unwrap(),
+                ),
             ],
         );
 
@@ -145,5 +164,20 @@ mod tests {
 
         let lists = config.read_lists().unwrap();
         assert_eq!(lists.len(), 1)
+    }
+
+    #[test]
+    fn read_empty_me_list() {
+        let config = StaticListsDirectory::new(PathBuf::from("/tmp/fancydns827209438"));
+        let _ = config.delete(); // Delete so the test can work again even though it failed before.
+        let res = config.create_if_it_does_not_exist("test").unwrap();
+
+        let list_result = config.read_list("test");
+
+        assert!( list_result.is_ok());
+        let list = list_result.unwrap();
+        assert_eq!(list.pubkey, "test");
+        assert_eq!(list.alias, "me");
+        assert_eq!(list.follows.len(), 0);
     }
 }

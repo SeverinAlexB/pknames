@@ -45,22 +45,22 @@ mod tests {
             "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
             "me".to_string(),
             vec![
-                Follow::new("pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey".to_string(), 1.0, None).unwrap(),
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, None).unwrap(),
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), -1.0, Some("example.com1".to_string())).unwrap(),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), 1.0/3.0, None).unwrap(),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com1".to_string())).unwrap(),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com2".to_string())).unwrap()
+                Follow::new("pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey", 1.0, None),
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", 1.0/3.0, None),
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", -1.0, Some("example.com1".to_string())),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", 1.0/3.0, None),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com1".to_string())),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com2".to_string()))
             ],
         );
         let list2 = FollowList::new_with_follows(
             "pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey".to_string(),
             "Alice".to_string(),
             vec![
-                Follow::new("pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy".to_string(), 1.0/3.0, None).unwrap(),
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), -1.0, Some("example.com1".to_string())).unwrap(),
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, None).unwrap(),
-                Follow::new("pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(), 1.0/3.0, None).unwrap(),
+                Follow::new("pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy", 1.0/3.0, None),
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", -1.0, Some("example.com1".to_string())),
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", 1.0/3.0, None),
+                Follow::new("pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso", 1.0/3.0, None),
             ],
         );
         let graph = follow_lists_into_wot_graph(vec![list1, list2]);
@@ -81,15 +81,15 @@ mod tests {
             "me".to_string(),
             "me".to_string(),
             vec![
-                Follow::new("d2".to_string(), 1.0, None).unwrap(),
-                Follow::new("d2".to_string(), 0.5, Some("example.com".to_string())).unwrap(),
+                Follow::new("d2", 1.0, None),
+                Follow::new("d2", 0.5, Some("example.com".to_string())),
             ],
         );
         let list2 = FollowList::new_with_follows(
             "d2".to_string(),
             "d2".to_string(),
             vec![
-                Follow::new("d1".to_string(), 0.5, Some("example.com".to_string())).unwrap(),
+                Follow::new("d1", 0.5, Some("example.com".to_string())),
             ],
         );
 

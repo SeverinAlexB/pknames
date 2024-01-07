@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 use zbase32;
 use pkarr::Keypair;
 
+use crate::cli::follow_list::{FollowList, Follow};
+
 use super::static_lists_directory::StaticListsDirectory;
 
 const SECRET_KEY_LENGTH: usize = 32;
@@ -77,7 +79,8 @@ impl MainDirectory {
      */
     pub fn create_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
         self.create_main_dir_if_it_does_not_exist()?;
-        self.static_lists_dir.create_if_it_does_not_exist()
+
+        self.static_lists_dir.create_if_it_does_not_exist(&self.get_zbase32_public_key())
     }
 
     /**
@@ -153,13 +156,10 @@ impl MainDirectory {
         let pair = self.read_keypair().expect("KeyPair exists.");
         format!("pk:{}", pair.public_key().to_z32())
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-    use pkarr::Keypair;
-    use zbase32;
     use super::MainDirectory;
 
     #[test]
