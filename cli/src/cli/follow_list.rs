@@ -1,6 +1,9 @@
 use std::{collections::HashSet, hash::{Hash, Hasher}};
 
+use fancyd_wot::prediction::graph::WotGraph;
 use serde::{Deserialize, Serialize, Serializer};
+
+use super::wot_transformer::{WotTransformer, follow_lists_into_wot_graph};
 
 #[derive(Serialize, Deserialize)]
 pub struct FollowList {
@@ -59,13 +62,9 @@ impl FollowList {
         set
     }
 
-    // pub fn target_domains(&self) -> Vec<&Follow> {
-    //     self.follows.iter().filter(|f| f.domain().is_some()).collect()
-    // }
-
-    // pub fn target_lists(&self) -> Vec<&Follow> {
-    //     self.follows.iter().filter(|f| f.domain().is_none()).collect()
-    // }
+    pub fn to_graph(lists: Vec<FollowList>) -> WotGraph {
+        follow_lists_into_wot_graph(lists)
+    }
 
     pub fn to_json(&self) -> String {
         serde_json::to_string_pretty(&self).unwrap()

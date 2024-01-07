@@ -164,7 +164,7 @@ impl<'a> GraphPruner<'a> {
             node
         }).collect();
 
-        WotGraph::new(nodes).unwrap()
+        WotGraph::new(nodes)
     }
 
     pub fn prune(graph: WotGraph, attribution: &str, me_pubkey: &str) -> WotGraph {
@@ -252,7 +252,7 @@ mod tests {
             ]
         });
 
-        WotGraph::new(nodes).unwrap()
+        WotGraph::new(nodes)
     }
     
 
@@ -315,7 +315,7 @@ mod tests {
             ]
         });
 
-        WotGraph::new(nodes).unwrap()
+        WotGraph::new(nodes)
     }
     
 

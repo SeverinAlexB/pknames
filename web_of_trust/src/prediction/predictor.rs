@@ -276,7 +276,7 @@ mod tests {
                 ]
         });
 
-        WotGraph::new(nodes).unwrap()
+        WotGraph::new(nodes)
     }
 
     fn get_complex_graph() -> WotGraph {
@@ -328,7 +328,7 @@ mod tests {
             ]
         });
 
-        WotGraph::new(nodes).unwrap()
+        WotGraph::new(nodes)
     }
 
     #[test]

@@ -23,23 +23,19 @@ impl fmt::Display for WotGraph {
 
 
 impl WotGraph {
-    pub fn new(mut nodes: Vec<WotNode>) -> Result<Self, &'static str> {
-        nodes.sort_unstable_by_key(|node| node.pubkey.clone());
-        let graph = WotGraph { nodes };
-
-        if !graph.is_unique() {
-            return Err("Node pubkeys are not unique.");
-        };
-        if !graph.is_well_connected() {
-            return Err("Graph is not well connected. WotFollow.target_pubkey does not have a corresponding node.")
-        };
-
-        Ok(graph)
-    }
-
-    pub fn new2(mut nodes: Vec<WotNode>) -> WotGraph {
+    pub fn new(mut nodes: Vec<WotNode>) -> WotGraph {
         nodes.sort_unstable_by_key(|node| node.pubkey.clone());
         WotGraph { nodes }
+    }
+
+    pub fn validate(&self) -> Result<(), &str> {
+        if !self.is_unique() {
+            return Err("Node pubkeys are not unique.");
+        };
+        if !self.is_well_connected() {
+            return Err("Graph is not well connected. WotFollow.target_pubkey does not have a corresponding node.")
+        };
+        Ok(())
     }
 
     /**
@@ -236,7 +232,7 @@ mod tests {
             WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
         ]));
 
-        WotGraph::new(nodes).unwrap()
+        WotGraph::new(nodes)
     }
     
     #[test]
@@ -262,8 +258,9 @@ mod tests {
             alias: String::from("example.com2"),
             follows: vec![],
         });
-        let result = WotGraph::new(nodes);
-        assert!(result.is_err());
+        let graph    = WotGraph::new(nodes);
+        let validation_result = graph.validate();
+        assert!(validation_result.is_err());
     }
 
     #[test]

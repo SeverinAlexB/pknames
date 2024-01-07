@@ -8,18 +8,12 @@ pub struct WotTransformer {
     lists: Vec<FollowList>
 }
 
-impl WotTransformer {
-    pub fn new(lists: Vec<FollowList>) -> Self {
-        WotTransformer{
-            lists
-        }
-    }
 
-    /**
-     * Extracts nodes from lists
-     */
-    pub fn get_follow_nodes(&self) -> Vec<WotNode> {
-        let mut list_nodes: Vec<WotNode> = self.lists.iter().map(|list| {
+/**
+ * Transforms multiple FollowLists into a WotGraph.
+ */
+pub fn follow_lists_into_wot_graph(lists: Vec<FollowList>) -> WotGraph{
+        let mut list_nodes: Vec<WotNode> = lists.iter().map(|list| {
             let follows: Vec<WotFollow> = list.get_unique_follows().iter().map(|follow| {
                 WotFollow::new(list.pubkey.clone(), follow.pubkey().clone(), follow.weight().clone(), follow.domain().clone())
             }).collect();
@@ -28,51 +22,22 @@ impl WotTransformer {
         }).collect();
 
         let existing_pubkeys: HashSet<String> = list_nodes.iter().map(|node| node.pubkey.clone()).collect();
-        let all_pubkeys: HashSet<String> = self.lists.iter().map(|list| list.get_all_pubkeys()).flatten().collect();
+        let all_pubkeys: HashSet<String> = lists.iter().map(|list| list.get_all_pubkeys()).flatten().collect();
 
         let diff: Vec<String> = all_pubkeys.difference(&existing_pubkeys).map(|pubkey| pubkey.clone()).collect();
         let mut missing_nodes = diff.into_iter().map(|pubkey| WotNode::new_list(pubkey, "".to_string(), vec![])).collect::<Vec<WotNode>>();
         let mut result = vec![];
         result.append(&mut list_nodes);
         result.append(&mut missing_nodes);
-        result
-    }
 
-    pub fn get_graph(&self) -> WotGraph {
-        let nodes = self.get_follow_nodes();
-        WotGraph::new2(nodes)
-    }
+        WotGraph::new(result)
 }
 
 
 #[cfg(test)]
 mod tests {
-    use crate::cli::follow_list::{FollowList, Follow};
+    use crate::cli::{follow_list::{FollowList, Follow}, wot_transformer::follow_lists_into_wot_graph};
 
-    use super::WotTransformer;
-
-
-    // #[test]
-    // fn transform_classes() {
-    //     let list = FollowList::new_with_follows(
-    //         "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
-    //         "myList".to_string(),
-    //         vec![
-    //             Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), 1.0/3.0, None).unwrap(),
-    //             Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string(), -1.0, Some("example.com1".to_string())).unwrap(),
-    //             Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com1".to_string())).unwrap(),
-    //             Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string(), -1.0, Some("example.com2".to_string())).unwrap()
-    //         ],
-    //     );
-
-    //     let transformer = WotTransformer::new(vec![list]);
-    //     let classes = transformer.get_classes();
-    //     assert_eq!(classes.len(), 2);
-    //     let first = classes.get(0).unwrap();
-    //     assert_eq!(first.pubkey, "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy".to_string());
-    //     let second = classes.get(1).unwrap();
-    //     assert_eq!(second.pubkey, "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy".to_string());
-    // }
 
     #[test]
     fn transform_nodes() {
@@ -98,17 +63,15 @@ mod tests {
                 Follow::new("pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(), 1.0/3.0, None).unwrap(),
             ],
         );
-
-        let transformer = WotTransformer::new(vec![list1, list2]);
-        let nodes = transformer.get_follow_nodes();
-        assert_eq!(nodes.len(), 5);
-        let first = nodes.get(0).unwrap();
+        let graph = follow_lists_into_wot_graph(vec![list1, list2]);
+        assert_eq!(graph.nodes.len(), 5);
+        let first = graph.nodes.get(0).unwrap();
         assert_eq!(first.pubkey, "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string());
         let follows = first.follows.clone();
         assert_eq!(follows.len(), 6);
         assert!(follows[0].attribution.is_none());
         assert_eq!(follows.get(2).unwrap().clone().attribution.unwrap(), "example.com1".to_string());
-        let second = nodes.get(1).unwrap();
+        let second = graph.nodes.get(1).unwrap();
         assert_eq!(second.pubkey, "pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey".to_string());
     }
 
@@ -130,8 +93,7 @@ mod tests {
             ],
         );
 
-        let transformer = WotTransformer::new(vec![list1, list2]);
-        let graph = transformer.get_graph();
+        let graph =follow_lists_into_wot_graph(vec![list1, list2]);
 
         assert_eq!(graph.nodes.len(), 3);
     }
