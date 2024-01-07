@@ -27,8 +27,6 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
     let default_value = "".to_string();
     let domain: &String = matches.get_one("domain").unwrap_or(&default_value);
 
-    // println!("domain {}", val);
-
     let show_gui: bool = *matches.get_one("ui").unwrap();
     if show_gui {
         let lists = dir.static_lists_dir.read_valid_lists();

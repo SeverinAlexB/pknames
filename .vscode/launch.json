@@ -22,6 +22,8 @@
             "args": [
                 "ls",
                 "--ui",
+                "--domain",
+                "example.com"
             ],
             "cwd": "${workspaceFolder}"
         },

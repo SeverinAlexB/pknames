@@ -1,6 +1,6 @@
 use crate::prediction::graph::WotGraph;
 
-use super::{prune_undesired_attributions::prune_undesired_attributions, prune_useless_nodes::UselessNodePruner, prune_cycles::CyclePruner};
+use super::{prune_undesired_attributions::prune_undesired_attributions, prune_useless_nodes::UselessNodePruner, prune_cycles::CyclePruner, prune_class_follows::{prune_class_follows, prune_attribution_chains}};
 
 
 /**
@@ -11,6 +11,8 @@ pub fn prune_graph(graph: WotGraph, me_pubkey: &str, desired_attribution: &str) 
     let graph = prune_undesired_attributions(graph, desired_attribution);
     let graph = UselessNodePruner::prune(graph, me_pubkey);
     let graph = CyclePruner::prune(graph, me_pubkey);
+    let graph = prune_attribution_chains(graph);
+    let graph = prune_class_follows(graph);
     let graph = UselessNodePruner::prune(graph, me_pubkey);
     graph
 }

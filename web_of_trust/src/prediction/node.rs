@@ -85,6 +85,18 @@ impl WotNode {
         }
     }
 
+    /**
+     * Finds a WotNode in a Vec<WotNode>
+     */
+    pub fn binary_search_mut<'a>(pubkey: &str, list: &'a mut Vec<WotNode>) -> Option<&'a mut WotNode> {
+        let result = list.binary_search_by_key(&pubkey, |node| &node.pubkey);
+        if let Ok(index) = result  {
+            list.get_mut(index)
+        } else {
+            None
+        }
+    }
+
 
 
 }

@@ -1,5 +1,5 @@
 use super::{node::{WotNode, WotFollow}, predictor::WotPredictor};
-use std::{collections::HashSet, fmt, ops::Index};
+use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone)]
 pub struct WotGraph {
@@ -78,6 +78,14 @@ impl WotGraph {
     }
 
     /**
+     * Get WotFollow by pubkeys
+     */
+    pub fn get_follow_mut(&mut self, source_pubkey: &str, target_pubkey: &str) -> Option<&mut WotFollow> {
+        let source = self.nodes.iter_mut().find(|n| n.pubkey == source_pubkey)?;
+        source.get_follow_mut(target_pubkey)
+    }
+
+    /**
      * Removes a follow from the graph
      */
     pub fn remove_follow(&mut self, follow: &WotFollow) -> Option<WotFollow> {
@@ -129,19 +137,20 @@ impl WotGraph {
         }).collect()
     }
 
-    /**
-     * Get WotFollow by pubkeys
-     */
-    pub fn get_follow_mut(&mut self, source_pubkey: &str, target_pubkey: &str) -> Option<&mut WotFollow> {
-        let source = self.nodes.iter_mut().find(|n| n.pubkey == source_pubkey)?;
-        source.get_follow_mut(target_pubkey)
-    }
+
 
     /**
      * Find node by pubkey
      */
     pub fn get_node(&self, pubkey: &str) -> Option<&WotNode> {
         WotNode::binary_search(pubkey, &self.nodes)
+    }
+
+        /**
+     * Find node by pubkey
+     */
+    pub fn get_node_mut(&mut self, pubkey: &str) -> Option<& mut WotNode> {
+        WotNode::binary_search_mut(pubkey, &mut self.nodes)
     }
 
     pub fn get_classes(&self) -> Vec<&WotNode> {
