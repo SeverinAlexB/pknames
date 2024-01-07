@@ -32,7 +32,7 @@ Lookup example.com
 
 **Predict domain in UI**
 
-Darker colors equals higher power/probability.
+Darker colors equal higher power/probability.
 
 ```bash
 ➜ cargo run -- -d ./examples/simple lookup example.com --ui
@@ -42,7 +42,7 @@ Darker colors equals higher power/probability.
 
 **Add trust to a pubkey**
 
-Adds pubkey to your list. Trust value must be between -1 and 1 (float).
+Adds a pubkey to your list. Trust value must be between -1 and 1 (float).
 
 - `1` means full trust
 - `0` means neutral
@@ -52,9 +52,9 @@ Trusting `pk:123456` fully.
 
 ```bash
 
-➜ cargo run -- -d ./examples/simple add pk:123456 1  
+➜ cargo run -- -d ./examples/simple add pk:123456 0.9 
 
-Add pk:123456 1 None.
+Add pk:123456 0.9 None.
 Success!
 ```
 
@@ -72,7 +72,7 @@ Success!
 ```bash
 ➜ cargo run -- -d ./examples/simple remove pk:123456 
 
-Remove pk:123456 None from my list
+Remove pk:123456 None from my list.
 Success!
 ```
 
@@ -84,7 +84,7 @@ Attests that `pk:123456` owns `example.com` with a trust value of `1`.
 ```bash
 ➜ cargo run -- -d ./examples/simple add pk:123456 1 example.com
 
-Add pk:123456 1 Some("example.com")
+Add pk:123456 1 Some("example.com").
 Success!
 ```
 
@@ -96,7 +96,7 @@ Update attestation that `pk:123456` owns `example.com` with a trust value of `-0
 ```bash
 ➜ cargo run -- -d ./examples/simple add pk:123456 -- -0.5 example.com
 
-Add pk:123456 -0.5 Some("example.com")
+Add pk:123456 -0.5 Some("example.com").
 Success!
 ```
 
@@ -105,7 +105,7 @@ Success!
 ```bash
 ➜ cargo run -- -d ./examples/simple remove pk:123456 example.com
 
-Remove pk:123456 Some("example.com") from my list
+Remove pk:123456 Some("example.com") from my list.
 Success!
 ```
 
