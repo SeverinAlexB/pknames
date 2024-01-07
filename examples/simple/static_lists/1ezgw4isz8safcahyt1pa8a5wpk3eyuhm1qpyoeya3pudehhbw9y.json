@@ -1,0 +1,33 @@
+{
+  "pubkey": "pk:1ezgw4isz8safcahyt1pa8a5wpk3eyuhm1qpyoeya3pudehhbw9y",
+  "alias": "me",
+  "follows": [
+    [
+      "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
+      0.333
+    ],
+    [
+      "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy",
+      1.0,
+      "example.com"
+    ],
+    [
+      "pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy",
+      1.0,
+      "apple.com"
+    ],
+    [
+      "pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy",
+      1.0,
+      "microsoft.com"
+    ],
+    [
+      "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso",
+      1.0
+    ],
+    [
+      "pk:123456",
+      1.0
+    ]
+  ]
+}

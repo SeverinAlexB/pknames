@@ -1,0 +1,20 @@
+{
+  "pubkey": "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso",
+  "alias": "Alice",
+  "follows": [
+    [
+      "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
+      0.33333334
+    ],
+    [
+      "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy",
+      -1.0,
+      "example.com"
+    ],
+    [
+      "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
+      0.5,
+      "example.com"
+    ]
+  ]
+}

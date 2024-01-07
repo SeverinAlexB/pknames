@@ -3,7 +3,7 @@
 An experimental Web of Trust (WoT) domain name resolver built on [pkarr](https://github.com/nuhvi/pkarr). WIP.
 
 ```
-➜  cargo run -- --help
+➜ cargo run -- --help
 
 Usage: fancyd-cli [OPTIONS] [COMMAND]
 
@@ -21,6 +21,12 @@ Options:
   -h, --help                   Print help
 ```
 
+
+## Examples
+
+```bash
+➜ cargo run -- example.com
+```
 
 
 ## Todos

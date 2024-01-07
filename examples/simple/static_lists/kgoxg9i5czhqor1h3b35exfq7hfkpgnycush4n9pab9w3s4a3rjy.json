@@ -1,0 +1,15 @@
+{
+  "pubkey": "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
+  "alias": "Dave",
+  "follows": [
+    [
+      "pk:obngkq5tz5ag4j7jn39zktmq3din6io1h64myiojrrfc18imyu8o",
+      0.5,
+      "example.com"
+    ],
+    [
+      "pk:1ezgw4isz8safcahyt1pa8a5wpk3eyuhm1qpyoeya3pudehhbw9y",
+      1
+    ]
+  ]
+}
