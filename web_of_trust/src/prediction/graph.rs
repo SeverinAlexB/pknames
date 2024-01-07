@@ -1,5 +1,5 @@
 use super::{node::{WotNode, WotFollow}, predictor::WotPredictor};
-use std::{collections::HashSet, fmt};
+use std::{collections::HashSet, fmt, ops::Index};
 
 #[derive(Debug, Clone)]
 pub struct WotGraph {
@@ -78,6 +78,20 @@ impl WotGraph {
     }
 
     /**
+     * Removes a follow from the graph
+     */
+    pub fn remove_follow(&mut self, follow: &WotFollow) -> Option<WotFollow> {
+        for node in self.get_follow_nodes_mut() {
+            if node.follows.contains(follow) {
+                let index = node.follows.iter().position(|x| x == follow).unwrap();
+                let removed = node.follows.remove(index);
+                return Some(removed);
+            }
+        };
+        None
+    }
+
+    /**
      * Get all nodes
      */
     pub fn get_nodes(&self) -> HashSet<&WotNode> {
@@ -139,6 +153,13 @@ impl WotGraph {
 
     pub fn get_follow_nodes(&self) -> Vec<&WotNode> {
         let result: Vec<&WotNode> = self.nodes.iter().filter(|n| {
+            n.follows.len() > 0
+        }).collect();
+        result
+    }
+
+    pub fn get_follow_nodes_mut(&mut self) -> Vec<&mut WotNode> {
+        let result: Vec<&mut WotNode> = self.nodes.iter_mut().filter(|n| {
             n.follows.len() > 0
         }).collect();
         result

@@ -1,7 +1,11 @@
 use core::panic;
 use std::{collections::{HashSet, HashMap}, fmt};
 
-use super::{graph::WotGraph, node::{WotNode, WotFollow}};
+use crate::prediction::{graph::WotGraph, node::{WotNode, WotFollow}};
+
+use super::prune_undesired_attributions::prune_undesired_attributions;
+
+
 
 /**
  * Turns the possibly cyclical Web of Trust graph into an acyclical graph and prunes unnecesarry nodes.
@@ -78,22 +82,6 @@ impl<'a> GraphPruner<'a> {
         self.visited.remove(visited_index);
     }
 
-    /**
-     * Prunes all attributions that are not equal to `attribution`
-     */
-    fn prune_unnecessary_attributions(mut graph: WotGraph, attribution: &str) -> WotGraph {
-        for node in graph.nodes.iter_mut() {
-            let selected_follows: Vec<WotFollow> = node.follows.clone().into_iter().filter(|follow| {
-                match follow.attribution.clone() {
-                    None => true,
-                    Some(att) => att == attribution
-                }
-            }).collect();
-            node.follows = selected_follows;
-        }
-        graph
-    }
-
     fn search_paths(&mut self) -> Vec<Vec<&'a WotNode>> {
         let start = self.get_start_node();
         let classes = self.graph.get_classes();
@@ -168,7 +156,7 @@ impl<'a> GraphPruner<'a> {
     }
 
     pub fn prune(graph: WotGraph, attribution: &str, me_pubkey: &str) -> WotGraph {
-        let graph = Self::prune_unnecessary_attributions(graph, attribution);
+        let graph = prune_undesired_attributions(graph, attribution);
         let mut pruner = GraphPruner::new(&graph, me_pubkey.to_string());
         pruner.search_paths();
         let pruned = pruner.clone_and_prune();
@@ -194,7 +182,9 @@ impl fmt::Display for GraphPruner<'_> {
 mod tests {
     use std::collections::HashSet;
 
-    use super::super::node::{WotNode, WotFollow};
+
+    use crate::{prediction::node::{WotNode, WotFollow}, pruning::prune_undesired_attributions::prune_undesired_attributions};
+
     use super::{WotGraph, GraphPruner};
 
     /**
@@ -366,7 +356,7 @@ mod tests {
     #[test]
     fn search_critical_graph() {
         let graph = get_complex_graph();
-        let graph = GraphPruner::prune_unnecessary_attributions(graph, "example.com");
+        let graph = prune_undesired_attributions(graph, "example.com");
         // let pruned1 = GraphPruner::prune(&graph);
         let mut search = GraphPruner::new(&graph, "me".to_string());
         search.search_paths();

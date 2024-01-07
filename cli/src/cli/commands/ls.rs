@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use clap::ArgMatches;
-use fancyd_wot::{visualization::visualization::visualize_graph, prediction::graph_pruner::GraphPruner};
-use crate::cli::{config_directory::main_directory::{MainDirectory, self}, wot_transformer::{WotTransformer, follow_lists_into_wot_graph}};
+use fancyd_wot::{pruning::graph_pruner::GraphPruner, visualization::visualization::visualize_graph};
+use crate::cli::{config_directory::main_directory::{MainDirectory}, wot_transformer::{follow_lists_into_wot_graph}};
 
 
 pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
