@@ -12,12 +12,6 @@ Web of trust with multiple attested domains.
     - apple.com: `pk:s9y93`
 
 
-You can use this example in the cli by using this as your main directory.
-
-```bash
-cargo run -- -d ./examples/simple getinfo
-```
-
 ## Commands 
 
 **Show graph in UI**
