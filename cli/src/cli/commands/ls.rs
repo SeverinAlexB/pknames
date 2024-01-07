@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use clap::ArgMatches;
 use fancyd_wot::{ visualization::visualization::visualize_graph, pruning::prune::prune_graph};
-use crate::cli::{config_directory::main_directory::{MainDirectory}, wot_transformer::{follow_lists_into_wot_graph}};
+use crate::cli::{config_directory::main_directory::MainDirectory, wot_transformer::follow_lists_into_wot_graph};
 
 
 pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
@@ -37,6 +37,6 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
             println!("Prune graph for domain {}", domain);
             graph = prune_graph(graph, &dir.get_zbase32_public_key(), domain);
         }
-        visualize_graph(graph, "fancy-cli ls", None);
+        visualize_graph(graph, "fancy-cli ls", Some(&dir.get_zbase32_public_key()), None);
     }
 }

@@ -9,7 +9,7 @@ use std::collections::HashMap;
 
 use petgraph::{stable_graph::{NodeIndex, StableGraph, DefaultIx}, Directed};
 
-use crate::{prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPredictionResult}};
+use crate::prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPredictionResult};
 
 use super::{node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
 
@@ -106,25 +106,27 @@ impl App for InteractiveApp {
 /**
  * Show a GUI that visualized the graph in a simple way.
  */
-pub fn visualize_graph(graph: WotGraph, title: &str, result: Option<WotPredictionResult>) -> () {
-
+pub fn visualize_graph(graph: WotGraph, title: &str, me_pubkey: Option<&str>, result: Option<WotPredictionResult>) -> () {
     let mut egui_graph: Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> = graph.into();
-
-    if let Some(res) = result {
-        let node_indexes: Vec<petgraph::prelude::NodeIndex> =
-        egui_graph.nodes_iter().map(|(index, _)| index).collect();
-    
-        // Set power if available
-        for index in node_indexes.iter() {
-            let node = egui_graph.node_mut(*index).unwrap();
-            let payload = node.payload();
-            let val = res.get_value(&payload.node.pubkey);
-            node.display_mut().power = val;
-        };
-    }
+    let node_indexes: Vec<petgraph::prelude::NodeIndex> =
+    egui_graph.nodes_iter().map(|(index, _)| index).collect();
 
 
+    // Set power if available
+    for index in node_indexes.iter() {
+        let node = egui_graph.node_mut(*index).unwrap();
+        let payload = node.payload();
 
+        let mut power_val = None;
+        if let Some(ref res) = result {
+            power_val = res.get_value(&payload.node.pubkey);
+        }
+        let is_me = me_pubkey.is_some() && me_pubkey.unwrap() == payload.node.pubkey;
+        let internal_data = node.display_mut();
+        internal_data.is_me = is_me;
+        internal_data.power = power_val;
+
+    };
 
     let native_options = eframe::NativeOptions::default();
     run_native(

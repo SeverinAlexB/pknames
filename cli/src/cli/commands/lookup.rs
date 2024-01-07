@@ -30,7 +30,7 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     println!("Result {}", result);
     let show_gui: bool = *matches.get_one("ui").unwrap();
     if show_gui {
-        visualize_graph(graph, "Lookup domain", Some(result));
+        visualize_graph(graph, "Lookup domain", Some(&dir.get_zbase32_public_key()), Some(result));
     };
 
 

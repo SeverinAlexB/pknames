@@ -26,6 +26,7 @@ pub struct FancyNodeShape {
     pub radius: f32,
     pub is_class: bool,
     pub power: Option<f32>,
+    pub is_me: bool,
 }
 
 impl From<NodeProps<PredictedVisWotNode>> for FancyNodeShape {
@@ -38,6 +39,7 @@ impl From<NodeProps<PredictedVisWotNode>> for FancyNodeShape {
             radius: 5.0,
             is_class: node_props.payload.node.follows.len() == 0,
             power: node_props.payload.power,
+            is_me: false
         }
     }
 }
@@ -75,6 +77,10 @@ impl<E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<PredictedVisWotNode, E, 
                 let val = f32::min(1.0, val);
                 color = color.linear_multiply(val)
             };
+        }
+
+        if self.is_me {
+            color = Color32::BLUE;
         }
 
         let stroke = if self.is_class {
