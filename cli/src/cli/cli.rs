@@ -10,9 +10,13 @@ use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove};
  */
 pub fn run_cli() {
     let cmd = clap::Command::new("fancydns")
-        .about("A web of trust nslookup replacement.")
+        .about("A web of trust system to resolve domain names to pkarr public keys.")
         .arg(clap::Arg::new("directory").short('d').long("directory").required(false).help("FancyDns source directory.").default_value("~/.fancydns"))
         .arg(clap::Arg::new("verbose").short('v').long("verbose").required(false).num_args(0).help("Show verbose output."))
+        .subcommand(
+            clap::Command::new("getinfo")
+            .about("General information."),
+        )
         .subcommand(
             clap::Command::new("lookup")
             .about("Lookup the pubkey of a domain.")
@@ -24,16 +28,15 @@ pub fn run_cli() {
             .about("List your follow lists.")
             .arg(clap::Arg::new("ui").short('u').long("ui").required(false).num_args(0).help("Show graph in a ui frame."))
             .arg(clap::Arg::new("domain").short('d').long("domain").required(false).help("Prune graph by domain."))
-        ).subcommand(
-            clap::Command::new("getinfo")
-            .about("General information."),
-        ).subcommand(
+        )
+        .subcommand(
             clap::Command::new("add")
             .about("Add a follow to your list.")
             .arg(clap::Arg::new("pubkey").required(true).help("Public key to add."))
             .arg(clap::Arg::new("trust").required(true).help("Trust value between -1 and 1."))
             .arg(clap::Arg::new("domain").required(false).help("Attribute a domain to this public key."))
-        ).subcommand(
+        )
+        .subcommand(
             clap::Command::new("remove")
             .about("Remove a follow from your list.")
             .arg(clap::Arg::new("pubkey").required(true).help("Public key to remove."))
