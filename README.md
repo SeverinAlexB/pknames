@@ -22,11 +22,8 @@ Options:
 ```
 
 
-## Examples
+Checkout the [example](./examples/simple/) for a first glance into the system.
 
-```bash
-➜ cargo run -- example.com
-```
 
 
 ## Todos
@@ -36,6 +33,6 @@ Options:
 - [x] Graph visualization
 - [x] Graph pruning
 - [x] Transform cyclical graph to acyclical.
-- [x] CLI for a petname example use case.
+- [ ] CLI.
 - [ ] ICANN DNS fallback
 - [ ] Reseach gameability
