@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::ArgMatches;
-use fancyd_wot::{prediction::{predictor::WotPredictor}, pruning::graph_pruner::GraphPruner, visualization::visualization::visualize_graph};
+use fancyd_wot::{prediction::predictor::WotPredictor,  visualization::visualization::visualize_graph, pruning::prune::prune_graph};
 
 use crate::cli::{config_directory::main_directory::MainDirectory, wot_transformer::follow_lists_into_wot_graph};
 
@@ -21,7 +21,7 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let graph = follow_lists_into_wot_graph(lists);
 
     let public_key = format!("{}", dir.get_zbase32_public_key());
-    let graph = GraphPruner::prune(graph, domain, public_key.as_str());
+    let graph = prune_graph(graph, public_key.as_str(), domain);
     println!("Graph pruned {}", graph);
 
     let predictor: WotPredictor = graph.clone().into();

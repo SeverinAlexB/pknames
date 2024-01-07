@@ -7,6 +7,7 @@ use crate::prediction::{graph::WotGraph, node::{WotNode, WotFollow}};
  * Prunes the graph from cycles. This is a very simple approach and has attack vectors.
  * Example: By following certain nodes you can artifically create cycles and because this pruning is not smart, it might prune the wrong follow.
  * TODO: Needs to be hardened in the future.
+ * https://github.com/zhenv5/breaking_cycles_in_noisy_hierarchies
  */
 
 struct DfsResult<'a> {
@@ -91,7 +92,7 @@ impl<'a> CyclePruner<'a> {
         result
     }
 
-    pub fn search_cycles(&mut self) -> HashSet<&'a WotFollow> {
+    fn search_cycles(&mut self) -> HashSet<&'a WotFollow> {
         let start = self.get_start_node();
         let classes = self.graph.get_classes();
         let mut pruned_follows: HashSet<& WotFollow> = HashSet::new();

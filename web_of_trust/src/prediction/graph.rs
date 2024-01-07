@@ -92,6 +92,15 @@ impl WotGraph {
     }
 
     /**
+     * Removes a node from the graph
+     */
+    pub fn remove_node(&mut self, node: &WotNode) -> Option<WotNode> {
+        let index = self.nodes.iter().position(|x| x == node)?;
+        let res = self.nodes.remove(index);
+        Some(res)
+    }
+
+    /**
      * Get all nodes
      */
     pub fn get_nodes(&self) -> HashSet<&WotNode> {
