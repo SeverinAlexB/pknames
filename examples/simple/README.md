@@ -46,7 +46,7 @@ Darker colors equals higher power/probability.
 
 ![Prediction UI](./imgs/prediction.png)
 
-**Add trust pubkey**
+**Add trust to a pubkey**
 
 Adds pubkey to your list. Trust value must be between -1 and 1 (float).
 
