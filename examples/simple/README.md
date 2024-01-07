@@ -4,12 +4,12 @@ Web of trust with multiple attested domains.
 
 ![Graph preview](./imgs/main_graph.png)
 
-- Our identity: me
-- We follow: Alice, Dave, pk:s9y93
+- Our identity: `me`
+- We follow: `Alice`, `Dave`, `pk:s9y93`
 - Attested domains:
-    - example.com: pk:obngk, pk:1zpo3, pk:s9y93, Dave
-    - microsoft.com: pk:s9y93
-    - apple.com: pk:s9y93
+    - example.com: `pk:obngk`, `pk:1zpo3`, `pk:s9y93`, `Dave`
+    - microsoft.com: `pk:s9y93`
+    - apple.com: `pk:s9y93`
 
 
 You can use this example in the cli by using this as your main directory.
