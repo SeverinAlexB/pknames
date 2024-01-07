@@ -8,8 +8,8 @@ Web of trust with multiple attested domains.
 - We follow: `Alice`, `Dave`, `pk:s9y93`
 - Attested domains:
     - example.com: `pk:obngk`, `pk:1zpo3`, `pk:s9y93`, `Dave`
-    - microsoft.com: `pk:s9y93`
-    - apple.com: `pk:s9y93`
+    - bitcoincore.org: `pk:s9y93`
+    - openpgp.org: `pk:s9y93`
 
 
 ## Commands 
@@ -115,18 +115,18 @@ Success!
 ➜ cargo run -- -d ./examples/simple ls
 
 List pk:1ezgw4isz8safcahyt1pa8a5wpk3eyuhm1qpyoeya3pudehhbw9y (me)
-- 🅰️  pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy 1.00 example.com
-- 🅰️  pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy 1.00 apple.com
-- 🅰️  pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy 1.00 microsoft.com
 - 📃 pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso 1.00
+- 🅰️  pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy 1.00 bitcoincore.org
 - 📃 pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy 0.33
+- 🅰️  pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy 1.00 openpgp.org
+- 🅰️  pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy 1.00 example.com
 
 List pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy (Dave)
 - 📃 pk:1ezgw4isz8safcahyt1pa8a5wpk3eyuhm1qpyoeya3pudehhbw9y 1.00
 - 🅰️  pk:obngkq5tz5ag4j7jn39zktmq3din6io1h64myiojrrfc18imyu8o 0.50 example.com
 
 List pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso (Alice)
-- 🅰️  pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy 0.50 example.com
-- 📃 pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy 0.33
 - 🅰️  pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy -1.00 example.com
+- 📃 pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy 0.33
+- 🅰️  pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy 0.50 example.com
 ```
