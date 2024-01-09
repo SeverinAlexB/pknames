@@ -48,7 +48,7 @@ pub fn run_cli() {
     let directory_path = validate_directory(&matches);
     if let Err(e) = directory_path {
         println!("Directory validation failed: {}", e);
-        return;
+        std::process::exit(1);
     };
 
     let folder_buf = directory_path.unwrap();
@@ -117,14 +117,4 @@ fn validate_directory(matches: &ArgMatches) -> Result<PathBuf, String> {
         println!("Created directory {}", path.to_str().unwrap());
     };
     Ok(path_buf)
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn single_test() {
-
-    }
-
 }
