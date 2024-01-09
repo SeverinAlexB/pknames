@@ -20,7 +20,8 @@
                 }
             },
             "args": [
-                "getinfo"
+                "lookup",
+                "apple.com"
             ],
             "cwd": "${workspaceFolder}"
         },

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, process::ExitCode};
 
 use clap::ArgMatches;
 use pknames_wot::{prediction::predictor::WotPredictor,  visualization::visualization::visualize_graph, pruning::prune::prune_graph};
@@ -15,10 +15,15 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let lists = dir.static_lists_dir.read_valid_lists();
     if lists.len() == 0 {
         println!("No lists found in \"{}\".", dir.static_lists_dir.path.to_str().unwrap());
-        return;
+        std::process::exit(1);
     };
 
     let graph = follow_lists_into_wot_graph(lists);
+
+    if !graph.contains_attribution(domain) {
+        println!("Graph does not contain the domain.");
+        std::process::exit(1);
+    };
 
     let public_key = format!("{}", dir.get_zbase32_public_key());
     let graph = prune_graph(graph, public_key.as_str(), domain);
@@ -33,7 +38,6 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
         };
     };
 
-    // println!("Result {}", result);
     let show_gui: bool = *matches.get_one("ui").unwrap();
     if show_gui {
         visualize_graph(graph, "Lookup domain", Some(&dir.get_zbase32_public_key()), Some(result));

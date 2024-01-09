@@ -123,6 +123,15 @@ impl WotGraph {
         follows.into_iter().filter_map(|follow| follow.attribution.clone()).collect()
     }
 
+    pub fn get_all_attributions(&self) -> HashSet<String> {
+        self.get_follows().into_iter().filter_map(|follow| follow.attribution.clone()).collect()
+    }
+
+    pub fn contains_attribution(&self, attribution: &str) -> bool {
+        let attributions = self.get_all_attributions();
+        attributions.contains(attribution)
+    }
+
     /**
      * Get all unique follows
      */

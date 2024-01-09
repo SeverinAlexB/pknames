@@ -113,11 +113,16 @@ impl<'a> UselessNodePruner<'a> {
     }
 
     pub fn prune(mut graph: WotGraph, me_pubkey: &str) -> WotGraph {
-        let useless_nodes = UselessNodePruner::find(&graph, me_pubkey);
+        let useless_node_refs = UselessNodePruner::find(&graph, me_pubkey);
 
-        let useless_nodes2: HashSet<WotNode> = useless_nodes.into_iter().map(|follow| follow.clone()).collect();
-        for follow in useless_nodes2.into_iter() {
-            graph.remove_node(&follow);
+        let useless_nodes: HashSet<WotNode> = useless_node_refs.into_iter().map(|node| node.clone()).collect();
+        for node in useless_nodes.iter() {
+            graph.remove_node(node);
+        };
+
+        let useless_node_ids: HashSet<String> = useless_nodes.into_iter().map(|node| node.pubkey).collect();
+        for node in graph.nodes.iter_mut() {
+            node.follows.retain(|follow| !useless_node_ids.contains(&follow.target_pubkey));
         };
         graph
     }
@@ -217,5 +222,6 @@ mod tests {
         let graph = UselessNodePruner::prune(graph, "me");
         assert!(graph.get_node("n3").is_none());
         assert!(graph.get_node("n4").is_none());
+        assert_eq!(graph.get_node("n2").unwrap().follows.len(), 1);
     }
 }
