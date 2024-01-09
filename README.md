@@ -1,11 +1,11 @@
-# fancyd-rust
+# pknames-resolver
 
 An experimental Web of Trust (WoT) domain name resolver built on [pkarr](https://github.com/nuhvi/pkarr). WIP.
 
 ```
 ➜ cargo run -- --help
 
-Usage: fancyd-cli [OPTIONS] [COMMAND]
+Usage: pknamescli [OPTIONS] [COMMAND]
 
 Commands:
   getinfo  General information.

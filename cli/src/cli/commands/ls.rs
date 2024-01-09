@@ -35,6 +35,6 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
             println!("Prune graph for domain {}", domain);
             graph = prune_graph(graph, &dir.get_zbase32_public_key(), domain);
         }
-        visualize_graph(graph, "fancy-cli ls", Some(&dir.get_zbase32_public_key()), None);
+        visualize_graph(graph, "pknamescli ls", Some(&dir.get_zbase32_public_key()), None);
     }
 }

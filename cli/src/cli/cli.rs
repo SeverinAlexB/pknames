@@ -9,9 +9,9 @@ use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove};
  * Main cli entry function.
  */
 pub fn run_cli() {
-    let cmd = clap::Command::new("fancydns")
+    let cmd = clap::Command::new("pknames")
         .about("A web of trust system to resolve domain names to pkarr public keys.")
-        .arg(clap::Arg::new("directory").short('d').long("directory").required(false).help("FancyDns source directory.").default_value("~/.fancydns"))
+        .arg(clap::Arg::new("directory").short('d').long("directory").required(false).help("pknames source directory.").default_value("~/.fancydns"))
         .arg(clap::Arg::new("verbose").short('v').long("verbose").required(false).num_args(0).help("Show verbose output."))
         .subcommand(
             clap::Command::new("getinfo")

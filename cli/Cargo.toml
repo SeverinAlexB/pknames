@@ -1,5 +1,5 @@
 [package]
-name = "fancyd-cli"
+name = "pknamescli"
 version = "0.1.0"
 edition = "2021"
 

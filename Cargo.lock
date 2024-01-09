@@ -1444,20 +1444,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fancyd-cli"
-version = "0.1.0"
-dependencies = [
- "assert_approx_eq",
- "clap",
- "fancyd_wot",
- "pkarr",
- "serde",
- "serde_json",
- "shellexpand",
- "zbase32",
-]
-
-[[package]]
 name = "fancyd_wot"
 version = "0.1.0"
 dependencies = [
@@ -2525,6 +2511,20 @@ name = "pkg-config"
 version = "0.3.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69d3587f8a9e599cc7ec2c00e331f71c4e69a5f9a4b8a6efd5b07466b9736f9a"
+
+[[package]]
+name = "pknamescli"
+version = "0.1.0"
+dependencies = [
+ "assert_approx_eq",
+ "clap",
+ "fancyd_wot",
+ "pkarr",
+ "serde",
+ "serde_json",
+ "shellexpand",
+ "zbase32",
+]
 
 [[package]]
 name = "platforms"

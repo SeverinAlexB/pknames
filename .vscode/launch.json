@@ -11,11 +11,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=fancyd-cli",
-                    "--package=fancyd-cli"
+                    "--bin=pknamescli",
+                    "--package=pknamescli"
                 ],
                 "filter": {
-                    "name": "fancyd-cli",
+                    "name": "pknamescli",
                     "kind": "bin"
                 }
             },
