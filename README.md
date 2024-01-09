@@ -16,7 +16,7 @@ Commands:
   help     Print this message or the help of the given subcommand(s)
 
 Options:
-  -d, --directory <directory>  FancyDns source directory. [default: ~/.fancydns]
+  -d, --directory <directory>  pknames source directory. [default: ~/.pknames]
   -v, --verbose                Show verbose output.
   -h, --help                   Print help
 ```

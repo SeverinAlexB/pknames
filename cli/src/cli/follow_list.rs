@@ -1,6 +1,6 @@
 use std::{collections::HashSet, hash::{Hash, Hasher}, fs, path::Path};
 
-use fancyd_wot::prediction::graph::WotGraph;
+use pknames_wot::prediction::graph::WotGraph;
 use serde::{Deserialize, Serialize, Serializer};
 
 use super::wot_transformer::{WotTransformer, follow_lists_into_wot_graph};

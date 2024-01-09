@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use fancyd_wot::prediction::{node::{WotNode, WotFollow}, graph::WotGraph};
+use pknames_wot::prediction::{node::{WotNode, WotFollow}, graph::WotGraph};
 
 use super::follow_list::FollowList;
 
