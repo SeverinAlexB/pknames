@@ -162,7 +162,7 @@ mod tests {
         std::fs::write(path, json).unwrap();
 
         let lists = config.read_lists().unwrap();
-        assert_eq!(lists.len(), 1)
+        assert_eq!(lists.len(), 2)
     }
 
     #[test]

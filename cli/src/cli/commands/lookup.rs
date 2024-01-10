@@ -14,18 +14,18 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
 
     let lists = dir.static_lists_dir.read_valid_lists();
     if lists.len() == 0 {
-        println!("No lists found in \"{}\".", dir.static_lists_dir.path.to_str().unwrap());
+        eprintln!("No lists found in \"{}\".", dir.static_lists_dir.path.to_str().unwrap());
         std::process::exit(1);
     };
 
     let graph: WotGraph = lists.into();
 
     if !graph.contains_attribution(domain) {
-        println!("Graph does not contain the domain.");
+        eprintln!("Graph does not contain the domain.");
         std::process::exit(1);
     };
 
-    let public_key = format!("{}", dir.get_zbase32_public_key());
+    let public_key = format!("{}", dir.get_public_key_uri());
     let graph = prune_graph(graph, public_key.as_str(), domain);
 
     let predictor: WotPredictor = graph.clone().into();
@@ -40,7 +40,7 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
 
     let show_gui: bool = *matches.get_one("ui").unwrap();
     if show_gui {
-        visualize_graph(graph, "Lookup domain", Some(&dir.get_zbase32_public_key()), Some(result));
+        visualize_graph(graph, "Lookup domain", Some(&dir.get_public_key_uri()), Some(result));
     };
 
 

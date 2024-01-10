@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use zbase32;
 use pkarr::Keypair;
 use super::static_lists_directory::StaticListsDirectory;
 
@@ -78,7 +77,7 @@ impl MainDirectory {
     pub fn create_if_it_does_not_exist(&self) -> Result<(), std::io::Error> {
         self.create_main_dir_if_it_does_not_exist()?;
 
-        self.static_lists_dir.create_if_it_does_not_exist(&self.get_zbase32_public_key())
+        self.static_lists_dir.create_if_it_does_not_exist(&self.get_public_key_uri())
     }
 
     /**
@@ -150,9 +149,9 @@ impl MainDirectory {
     /**
      * zbase32 public key in format pk:...
      */
-    pub fn get_zbase32_public_key(&self) -> String {
+    pub fn get_public_key_uri(&self) -> String {
         let pair = self.read_keypair().expect("KeyPair exists.");
-        format!("pk:{}", pair.public_key().to_z32())
+        pair.to_uri_string()
     }
 }
 

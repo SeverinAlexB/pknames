@@ -10,7 +10,7 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
 
     let lists = dir.static_lists_dir.read_lists().expect("Readable directory");
     if lists.len() == 0 {
-        println!("No lists found in \"{}\".", dir.static_lists_dir.path.to_str().unwrap());
+        eprintln!("No lists found in \"{}\".", dir.static_lists_dir.path.to_str().unwrap());
         return;
     };
 
@@ -33,8 +33,8 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
         let mut graph: WotGraph = lists.into();
         if domain.len() > 0 {
             println!("Prune graph for domain {}", domain);
-            graph = prune_graph(graph, &dir.get_zbase32_public_key(), domain);
+            graph = prune_graph(graph, &dir.get_public_key_uri(), domain);
         }
-        visualize_graph(graph, "pknamescli ls", Some(&dir.get_zbase32_public_key()), None);
+        visualize_graph(graph, "pknamescli ls", Some(&dir.get_public_key_uri()), None);
     }
 }

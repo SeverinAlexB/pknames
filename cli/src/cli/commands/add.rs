@@ -14,7 +14,7 @@ pub fn cli_add(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let dir = MainDirectory::new(directory);
     dir.create_if_it_does_not_exist().unwrap();
 
-    let mut me_list = dir.static_lists_dir.read_list(&dir.get_zbase32_public_key()).expect("Me list should exist.");
+    let mut me_list = dir.static_lists_dir.read_list(&dir.get_public_key_uri()).expect("Me list should exist.");
     let new_follow = Follow::new(pubkey, trust, domain);
     if me_list.follows.contains(&new_follow) {
         let index = me_list.follows.iter().position(|x| *x == new_follow).unwrap();
@@ -22,10 +22,10 @@ pub fn cli_add(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     }
     me_list.follows.push(new_follow);
 
-    let result = dir.static_lists_dir.write_list(&dir.get_zbase32_public_key(), me_list);
+    let result = dir.static_lists_dir.write_list(&dir.get_public_key_uri(), me_list);
     match result {
         Ok(_) => println!("Success!"),
-        Err(e) => println!("Failed to write list: {}", e)
+        Err(e) => eprintln!("Failed to write list: {}", e)
     };
 
 }

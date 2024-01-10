@@ -1,4 +1,4 @@
-# pknames-resolver
+# pknames
 
 An experimental Web of Trust (WoT) domain name resolver built on [pkarr](https://github.com/nuhvi/pkarr). WIP.
 
