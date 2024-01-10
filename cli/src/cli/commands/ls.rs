@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use clap::ArgMatches;
-use pknames_wot::{ visualization::visualization::visualize_graph, pruning::prune::prune_graph};
-use crate::cli::{config_directory::main_directory::MainDirectory, wot_transformer::follow_lists_into_wot_graph};
+use pknames_core::{ visualization::visualization::visualize_graph, pruning::prune::prune_graph, config_directory::{dirs::main_directory::MainDirectory}, prediction::graph::WotGraph};
+
 
 
 pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
@@ -30,7 +30,7 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
     let show_gui: bool = *matches.get_one("ui").unwrap();
     if show_gui {
         let lists = dir.static_lists_dir.read_valid_lists();
-        let mut graph = follow_lists_into_wot_graph(lists);
+        let mut graph: WotGraph = lists.into();
         if domain.len() > 0 {
             println!("Prune graph for domain {}", domain);
             graph = prune_graph(graph, &dir.get_zbase32_public_key(), domain);

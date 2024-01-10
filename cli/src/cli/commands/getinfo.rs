@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use clap::ArgMatches;
-use crate::cli::config_directory::main_directory::MainDirectory;
+use pknames_core::config_directory::dirs::main_directory::MainDirectory;
 
 
 pub fn cli_getinfo(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {

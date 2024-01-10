@@ -1,5 +1,5 @@
 use cli::cli::run_cli;
-use pknames_wot::{prediction::{graph::WotGraph, node::{WotNode, WotFollow}}, visualization::visualization::visualize_graph};
+use pknames_core::{prediction::{graph::WotGraph, node::{WotNode, WotFollow}}, visualization::visualization::visualize_graph};
 
 mod cli;
 

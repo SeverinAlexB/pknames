@@ -1,9 +1,8 @@
-use std::{collections::HashSet, hash::{Hash, Hasher}, fs, path::Path};
+use std::{collections::HashSet, fs, path::Path};
+use serde::{Deserialize, Serialize};
 
-use pknames_wot::prediction::graph::WotGraph;
-use serde::{Deserialize, Serialize, Serializer};
+use super::follow::Follow;
 
-use super::wot_transformer::{WotTransformer, follow_lists_into_wot_graph};
 
 #[derive(Serialize, Deserialize)]
 pub struct FollowList {
@@ -75,10 +74,6 @@ impl FollowList {
         set
     }
 
-    pub fn to_graph(lists: Vec<FollowList>) -> WotGraph {
-        follow_lists_into_wot_graph(lists)
-    }
-
     pub fn to_json(&self) -> String {
         serde_json::to_string_pretty(&self).unwrap()
     }
@@ -90,81 +85,10 @@ impl FollowList {
 }
 
 
-#[derive(Serialize, Deserialize)]
-pub struct Follow(
-    String, // pubkey
-    #[serde(serialize_with = "serialize_weight")]
-    f32, // weight
-    #[serde(default = "default_domain")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    Option<String> // domain
-);
-
-fn serialize_weight<S>(weight: &f32, s: S) -> Result<S::Ok, S::Error> where S: Serializer {
-    let accuracy_after_comma = 3;
-    let base: f32 = 10.0;
-    let divider = base.powi(accuracy_after_comma);
-    let clone = weight.clone();
-    let rounded: f32 = (clone*divider).round()/divider;
-    s.serialize_f32(rounded)
-}
-
-fn default_domain() -> Option<String> {
-    None
-}
-
-impl std::fmt::Display for Follow {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let emoji = match self.domain() {
-            Some(_) => "🅰️ ",
-            None => "📃"
-        };
-        let mut name = format!("{} {} {:.2}", emoji, self.pubkey(), self.1);
-
-        if let Some(domain) = self.domain() {
-            name = format!("{} {}", name, domain);
-        };
-        write!(f, "{}", name)
-    }
-}
-
-impl Follow {
-    pub fn new(target_pubkey: &str, weight: f32, domain: Option<String>) -> Self {
-        Follow(target_pubkey.to_string(), weight, domain)
-    }
-
-    pub fn pubkey(&self) -> &String {
-        &self.0
-    }
-
-    pub fn weight(&self) -> &f32 {
-        &self.1
-    }
-
-
-    pub fn domain(&self) -> &Option<String> {
-        &self.2
-    }
-
-}
-
-impl PartialEq for Follow {
-    fn eq(&self, other: &Self) -> bool {
-        self.pubkey() == other.pubkey() && self.domain() == other.domain()
-    }
-}
-impl Eq for Follow {}
-
-impl Hash for Follow {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.pubkey().hash(state);
-        self.domain().hash(state);
-    }
-}
 
 #[cfg(test)]
 mod tests {
-    use crate::cli::follow_list::{FollowList, Follow};
+    use crate::config_directory::{follow_list::{FollowList}, follow::Follow};
 
 
     #[test]

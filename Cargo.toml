@@ -1,6 +1,6 @@
 [workspace]
 
 members = [
-    "web_of_trust",
+    "core",
     "cli"
 ]

@@ -1,9 +1,9 @@
-use std::{path::PathBuf, process::ExitCode};
+use std::path::PathBuf;
 
 use clap::ArgMatches;
-use pknames_wot::{prediction::predictor::WotPredictor,  visualization::visualization::visualize_graph, pruning::prune::prune_graph};
+use pknames_core::{prediction::{predictor::WotPredictor, graph::WotGraph},  visualization::visualization::visualize_graph, pruning::prune::prune_graph, config_directory::dirs::main_directory::MainDirectory};
 
-use crate::cli::{config_directory::main_directory::MainDirectory, wot_transformer::follow_lists_into_wot_graph};
+
 
 pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let domain: &String = matches.get_one("domain").unwrap();
@@ -18,7 +18,7 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
         std::process::exit(1);
     };
 
-    let graph = follow_lists_into_wot_graph(lists);
+    let graph: WotGraph = lists.into();
 
     if !graph.contains_attribution(domain) {
         println!("Graph does not contain the domain.");

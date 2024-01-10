@@ -1,8 +1,7 @@
 use std::fs;
-use std::io::Error;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 
-use crate::cli::follow_list::FollowList;
+use crate::config_directory::follow_list::FollowList;
 
 
 pub struct StaticListsDirectory {
@@ -130,7 +129,7 @@ impl StaticListsDirectory {
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
-    use crate::cli::follow_list::{FollowList, Follow};
+    use crate::config_directory::{follow_list::FollowList, follow::Follow};
     use super::StaticListsDirectory;
 
 

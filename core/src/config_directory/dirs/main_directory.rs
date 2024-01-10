@@ -2,10 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use zbase32;
 use pkarr::Keypair;
-
-use crate::cli::follow_list::{FollowList, Follow};
-
 use super::static_lists_directory::StaticListsDirectory;
+
 
 const SECRET_KEY_LENGTH: usize = 32;
 

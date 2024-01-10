@@ -1,5 +1,5 @@
 [package]
-name = "pknames_wot"
+name = "pknames_core"
 version = "0.1.0"
 edition = "2021"
 
@@ -13,6 +13,9 @@ egui = "0.24.1"
 egui_graphs = { version = "0.17.0", features = ["events"] }
 fdg-sim = "0.9.1"
 petgraph = "0.6.4"
+pkarr = "1.0.1"
 rand = "0.8.5"
 serde = "1.0.192"
 serde_json = "1.0.108"
+shellexpand = "3.1.0"
+zbase32 = "0.1.2"
