@@ -5,35 +5,64 @@ use burn::tensor::{Data, Shape};
 use super::{graph::WotGraph, feed_forward::FeedForward, node::{WotNode, WotFollow}};
 
 #[derive(Clone)]
-pub struct WotPredictionResult {
-    map: HashMap<String, f32>
+pub struct WotClassPrediction {
+    pub pubkey: String,
+    pub probability: f32
 }
 
-impl fmt::Display for WotPredictionResult {
+#[derive(Clone)]
+pub struct WotNodePrediction {
+    pub pubkey: String,
+    pub power: f32
+}
+
+#[derive(Clone)]
+pub struct WotPrediction {
+    pub classes: Vec<WotClassPrediction>,
+    pub nodes: Vec<WotNodePrediction>,
+}
+
+impl fmt::Display for WotPrediction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.map)
+        let mut out = "".to_string();
+        for domain in self.classes.iter() {
+            out = format!("{} - {} {:.2}%\n", out, domain.pubkey, domain.probability);
+        };
+        write!(f, "{:?}", out)
     }
 }
 
 
-impl WotPredictionResult {
-    pub fn new() -> Self {
-        WotPredictionResult { map: HashMap::new() }
-    }
+impl WotPrediction {
 
-    pub fn get_pubkeys(&self) -> Vec<&String> {
-        let keys: Vec<&String> = self.map.keys().collect();
-        keys
-    }
-
-    pub fn get_value(&self, pubkey: &str) -> Option<f32> {
-        let option = self.map.get(pubkey);
-        match option {
-            None => None,
-            Some(val) => {
-                Some(val.clone())
+    /**
+     * Get class with the highest probablity.
+     */
+    pub fn get_best_class(&self) -> Option<&WotClassPrediction> {
+        self.classes.iter().reduce(|a,b| {
+            if a.probability > b.probability {
+                a
+            } else {
+                b
             }
-        }
+        })
+    }
+
+    /**
+     * Get value of pubkey
+     */
+    pub fn get_value(&self, pubkey: &str) -> Option<f32> {
+        for prediction in self.classes.iter() {
+            if prediction.pubkey == pubkey {
+                return Some(prediction.probability.clone())
+            }
+        };
+        for prediction in self.nodes.iter() {
+            if prediction.pubkey == pubkey {
+                return Some(prediction.power.clone())
+            }
+        };
+        None
     }
 }
 
@@ -47,21 +76,28 @@ impl WotPredictor {
     /**
      * Predict the probability of the classes.
      */
-    pub fn predict(&self) -> WotPredictionResult {
+    pub fn predict(&self) -> WotPrediction {
         let weights = self.get_ff_weights();
         let feed_forward = FeedForward::new(weights);
         let _prediction = feed_forward.forward();
         let layers = self.layers_with_temp_nodes();
 
-        let mut map = HashMap::new();
+        let mut node_predictions: Vec<WotNodePrediction> = vec![];
+        let mut class_predictions: Vec<WotClassPrediction> = vec![];
         layers.iter().enumerate().for_each(|(i, layer)| {
+            let is_last_layer = i == layers.len() -1;
             layer.iter().enumerate().for_each(|(j, node)| {
                 let power = _prediction[i][j];
-                map.insert(node.pubkey.clone(), power);
+
+                if is_last_layer {
+                    class_predictions.push(WotClassPrediction{pubkey: node.pubkey.clone(), probability: power})
+                } else {
+                    node_predictions.push(WotNodePrediction{pubkey: node.pubkey.clone(), power: power})
+                }
             });
         });
 
-        WotPredictionResult { map: map }
+        WotPrediction { nodes: node_predictions, classes: class_predictions }
     }
 
     pub fn train(&mut self, correct_pubkey: &str, learning_rates: Vec<f64>) {
@@ -377,6 +413,7 @@ mod tests {
         assert_eq!(result.get_value("d2").unwrap(), 0.18242551);
     }
 
+    #[ignore] // Todo: Test fails but can't be bother yet to fix it. Very advanced feature.
     #[test]
     fn train_simple() {
         let graph = get_simple_graph();

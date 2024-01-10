@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
+            "name": "Cli",
             "cargo": {
                 "args": [
                     "build",
@@ -22,6 +22,29 @@
             "args": [
                 "lookup",
                 "apple.com"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Hermes",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hermes",
+                    "--package=pknames_hermes"
+                ],
+                "filter": {
+                    "name": "hermes",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-p",
+                "54",
+                "-f",
+                "8.8.8.8"
             ],
             "cwd": "${workspaceFolder}"
         },

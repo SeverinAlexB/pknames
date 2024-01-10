@@ -2687,12 +2687,15 @@ dependencies = [
  "derive_more",
  "getopts",
  "handlebars",
+ "pkarr",
+ "pknames_core",
  "rand 0.7.3",
  "regex",
  "serde",
  "serde_derive",
  "serde_json",
  "tiny_http",
+ "zbase32",
 ]
 
 [[package]]

@@ -9,7 +9,7 @@ use std::collections::HashMap;
 
 use petgraph::{stable_graph::{NodeIndex, StableGraph, DefaultIx}, Directed};
 
-use crate::prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPredictionResult};
+use crate::prediction::{node::{WotFollow, WotNode}, graph::WotGraph, predictor::WotPrediction};
 
 use super::{node_vis::FancyNodeShape, edge_vis::FancyEdgeShape};
 
@@ -106,7 +106,7 @@ impl App for InteractiveApp {
 /**
  * Show a GUI that visualized the graph in a simple way.
  */
-pub fn visualize_graph(graph: WotGraph, title: &str, me_pubkey: Option<&str>, result: Option<WotPredictionResult>) -> () {
+pub fn visualize_graph(graph: WotGraph, title: &str, me_pubkey: Option<&str>, result: Option<WotPrediction>) -> () {
     let mut egui_graph: Graph<PredictedVisWotNode, WotFollow, Directed, DefaultIx, FancyNodeShape, FancyEdgeShape> = graph.into();
     let node_indexes: Vec<petgraph::prelude::NodeIndex> =
     egui_graph.nodes_iter().map(|(index, _)| index).collect();

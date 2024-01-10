@@ -8,7 +8,7 @@ Very simple DNS Server that resolves pknames + pkarr uris.
 Run it
 
 ```bash
-cargo run -- -p 54 -f 8.8.8.8
+cargo run --bin hermes -- -p 54 -f 8.8.8.8
 ```
 
 Resolve domain

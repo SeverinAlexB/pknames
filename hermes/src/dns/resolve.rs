@@ -57,7 +57,11 @@ pub trait DnsResolver {
         let pknames_result = resolve_pknames(qname, qtype.clone());
         match pknames_result {
             Ok(val) => Ok(val),
-            Err(_) => self.perform(qname, qtype)
+            Err(_) => {
+                // Fallback to ICANN
+                println!("Fallback to ICANN");
+                self.perform(qname, qtype)
+            }
         }
 
         // self.perform(qname, qtype)

@@ -42,8 +42,4 @@ pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     if show_gui {
         visualize_graph(graph, "Lookup domain", Some(&dir.get_public_key_uri()), Some(result));
     };
-
-
-
-
 }
