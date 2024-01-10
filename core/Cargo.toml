@@ -8,6 +8,8 @@ authors = ["Severin Alexander Bühler"]
 description = "An experimental Web of Trust (WoT) domain name resolver using pkarr."
 repository = "https://github.com/SeverinAlexB/pknames"
 readme = "README.md"
+keywords = ["identity", "dht", "mainline", "decentralized", "dns"]
+categories = ["network-programming", ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
