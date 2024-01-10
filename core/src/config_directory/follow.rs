@@ -41,7 +41,8 @@ impl std::fmt::Display for Follow {
 }
 
 impl Follow {
-    pub fn new(target_pubkey: &str, weight: f32, domain: Option<String>) -> Self {
+    pub fn new(target_pubkey: &str, weight: f32, domain: Option<&str>) -> Self {
+        let domain = domain.map(|val| val.to_string());
         Follow(target_pubkey.to_string(), weight, domain)
     }
 
@@ -54,8 +55,8 @@ impl Follow {
     }
 
 
-    pub fn domain(&self) -> &Option<String> {
-        &self.2
+    pub fn domain(&self) -> Option<&str> {
+        self.2.as_ref().map(|val| val.as_str())
     }
 
 }

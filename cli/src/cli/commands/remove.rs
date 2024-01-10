@@ -5,10 +5,7 @@ use pknames_core::config_directory::{dirs::main_directory::MainDirectory, follow
 
 pub fn cli_remove(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let pubkey: &String = matches.get_one("pubkey").unwrap();
-    let domain = match matches.get_one::<String>("domain"){
-        Some(val) => Some(val.to_string()),
-        None => None
-    };
+    let domain = matches.get_one::<String>("domain");
 
     println!("Remove {} {:?} from my list", pubkey, domain);
 
@@ -16,7 +13,7 @@ pub fn cli_remove(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     dir.create_if_it_does_not_exist().unwrap();
 
     let mut me_list = dir.static_lists_dir.read_list(&dir.get_zbase32_public_key()).expect("Me list should exist.");
-    let follow = Follow::new(pubkey, 0.0, domain);
+    let follow = Follow::new(pubkey, 0.0, domain.map(|s|s.as_str()));
 
     if !me_list.follows.contains(&follow) {
         println!("Follow not found in my list.");

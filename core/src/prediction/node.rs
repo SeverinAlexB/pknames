@@ -23,18 +23,18 @@ impl fmt::Display for WotNode {
 
 impl WotNode {
 
-    pub fn new_class(pubkey: String, alias: String) -> WotNode {
+    pub fn new_class(pubkey: &str, alias: &str) -> WotNode {
         WotNode {
-            pubkey,
-            alias,
+            pubkey: pubkey.to_string(),
+            alias: alias.to_string(),
             follows: vec![]
         }
     }
 
-    pub fn new_list(pubkey: String, alias: String, follows: Vec<WotFollow>) -> WotNode {
+    pub fn new_list(pubkey: &str, alias: &str, follows: Vec<WotFollow>) -> WotNode {
         WotNode {
-            pubkey,
-            alias,
+            pubkey: pubkey.to_string(),
+            alias: alias.to_string(),
             follows: follows 
         }
     }
@@ -125,8 +125,8 @@ pub struct WotFollow {
 }
 
 impl WotFollow {
-    pub fn new(source_pubkey: String, target_pubkey: String, weight: f32, attribution: Option<String>) -> Self {
-        WotFollow { target_pubkey, source_pubkey, weight , attribution}
+    pub fn new(source_pubkey: &str, target_pubkey: &str, weight: f32, attribution: Option<&str>) -> Self {
+        WotFollow { target_pubkey: target_pubkey.to_string(), source_pubkey: source_pubkey.to_string(), weight , attribution: attribution.map(|s| s.to_string())}
     }
 }
 
@@ -161,23 +161,23 @@ mod tests {
     fn sort_node_vec() {
         let mut list: Vec<WotNode> = vec![
             WotNode::new_list(
-                "c".to_string(), 
-                "".to_string(), 
+                "c", 
+                "", 
                 vec![]
             ),
             WotNode::new_list(
-                "b".to_string(), 
-                "".to_string(), 
+                "b", 
+                "", 
                 vec![]
             ),
             WotNode::new_list(
-                "a".to_string(), 
-                "".to_string(), 
+                "a", 
+                "", 
                 vec![]
             ),
             WotNode::new_list(
-                "d".to_string(), 
-                "".to_string(), 
+                "d", 
+                "", 
                 vec![]
             ),
         ];
@@ -195,8 +195,8 @@ mod tests {
     fn display_node() {
         let pubkey = String::from("923jladsf");
         let node: WotNode = WotNode::new_list(
-            pubkey.clone(), 
-            "me".to_string(), 
+            &pubkey, 
+            "me", 
             vec![
                 WotFollow {
                     source_pubkey: String::from("hello"),

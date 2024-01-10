@@ -6,10 +6,7 @@ use pknames_core::config_directory::{dirs::main_directory::MainDirectory, follow
 pub fn cli_add(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
     let pubkey: &String = matches.get_one("pubkey").unwrap();
     let raw_trust: &String = matches.get_one("trust").unwrap();
-    let domain = match matches.get_one::<String>("domain"){
-        Some(val) => Some(val.to_string()),
-        None => None
-    };
+    let domain = matches.get_one::<String>("domain").map(|s|s.as_str());
     let trust: f32 = raw_trust.parse().expect("trust should be a valid number.");
 
     println!("Add {} {} {:?}", pubkey, trust, domain);

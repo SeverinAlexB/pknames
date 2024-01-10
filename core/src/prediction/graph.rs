@@ -264,20 +264,20 @@ mod tests {
         let mut nodes: Vec<WotNode> = Vec::new();
 
         // Classes
-        nodes.push(WotNode::new_class("d1".to_string(), "".to_string()));
-        nodes.push(WotNode::new_class("d2".to_string(), "".to_string()));
+        nodes.push(WotNode::new_class("d1", ""));
+        nodes.push(WotNode::new_class("d2", ""));
 
-        nodes.push(WotNode::new_list("n2".to_string(), "".to_string(), vec![
-            WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
-            WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
+        nodes.push(WotNode::new_list("n2", "", vec![
+            WotFollow::new("n2", "d1", 1.0, Some("example.com")),
+            WotFollow::new("n2", "d2", -1.0, Some("example.com")),
         ]));
-        nodes.push(WotNode::new_list("n1".to_string(), "".to_string(), vec![
-            WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
-            WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string()))
+        nodes.push(WotNode::new_list("n1", "", vec![
+            WotFollow::new("n1", "d1", -0.5, Some("example.com")),
+            WotFollow::new("n1", "d2", 0.0, Some("example.com"))
         ]));
-        nodes.push(WotNode::new_list("me".to_string(), "".to_string(), vec![
-            WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
-            WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
+        nodes.push(WotNode::new_list("me", "", vec![
+            WotFollow::new("me", "n1", 1.0, None),
+            WotFollow::new("me", "n2", 0.5, None)
         ]));
 
         WotGraph::new(nodes)

@@ -41,10 +41,10 @@ impl FollowList {
             follows: vec![],
         }
     }
-    pub fn new_with_follows(pubkey: String, alias: String , follows: Vec<Follow>) -> Self {
+    pub fn new_with_follows(pubkey: &str, alias: &str , follows: Vec<Follow>) -> Self {
         FollowList {
-            pubkey: pubkey,
-            alias: alias,
+            pubkey: pubkey.to_string(),
+            alias: alias.to_string(),
             follows: follows,
         }
     }
@@ -91,9 +91,9 @@ impl Into<WotGraph> for Vec<FollowList> {
     fn into(self) -> WotGraph {
         let mut list_nodes: Vec<WotNode> = self.iter().map(|list| {
             let follows: Vec<WotFollow> = list.get_unique_follows().iter().map(|follow| {
-                WotFollow::new(list.pubkey.clone(), follow.pubkey().clone(), follow.weight().clone(), follow.domain().clone())
+                WotFollow::new(list.pubkey.as_str(), follow.pubkey(), follow.weight().clone(), follow.domain())
             }).collect();
-            let node = WotNode::new_list(list.pubkey.clone(), list.alias.clone(), follows);
+            let node = WotNode::new_list(&list.pubkey, &list.alias, follows);
             node
         }).collect();
 
@@ -101,7 +101,7 @@ impl Into<WotGraph> for Vec<FollowList> {
         let all_pubkeys: HashSet<String> = self.iter().map(|list| list.get_all_pubkeys()).flatten().collect();
 
         let diff: Vec<String> = all_pubkeys.difference(&existing_pubkeys).map(|pubkey| pubkey.clone()).collect();
-        let mut missing_nodes = diff.into_iter().map(|pubkey| WotNode::new_list(pubkey, "".to_string(), vec![])).collect::<Vec<WotNode>>();
+        let mut missing_nodes = diff.into_iter().map(|pubkey| WotNode::new_list(&pubkey, "", vec![])).collect::<Vec<WotNode>>();
         let mut result = vec![];
         result.append(&mut list_nodes);
         result.append(&mut missing_nodes);
@@ -114,17 +114,17 @@ impl Into<WotGraph> for Vec<FollowList> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{config_directory::{follow_list::{FollowList}, follow::Follow}, prediction::graph::WotGraph};
+    use crate::{config_directory::{follow_list::FollowList, follow::Follow}, prediction::graph::WotGraph};
 
 
     #[test]
     fn to_json_and_back() {
         let list = FollowList::new_with_follows(
-            "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
-            "myList".to_string(),
+            "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso",
+            "myList",
             vec![
                 Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", 1.0/3.0, None),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com".to_string()))
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com"))
             ],
         );
 
@@ -159,15 +159,12 @@ mod tests {
     #[test]
     fn unique_follows() {
         let follows = vec![
-            Follow("1".to_string(), 1.0, None),
-            Follow("1".to_string(), 1.0, Some("example.com".to_string())),
-            Follow("1".to_string(), 0.1, Some("example.com".to_string())),
+            Follow::new("1", 1.0, None),
+            Follow::new("1", 1.0, Some("example.com")),
+            Follow::new("1", 0.1, Some("example.com")),
         ];
-        let list = FollowList{
-            follows,
-            pubkey: "me".to_string(),
-            alias: "".to_string()
-        };
+        
+        let list = FollowList::new_with_follows("me", "", follows);
         let unique: Vec<&Follow> = Vec::from_iter(list.get_unique_follows().into_iter());
         assert_eq!(unique.len(), 2);
     }
@@ -175,23 +172,23 @@ mod tests {
     #[test]
     fn transform_nodes() {
         let list1 = FollowList::new_with_follows(
-            "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
-            "me".to_string(),
+            "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso",
+            "me",
             vec![
                 Follow::new("pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey", 1.0, None),
                 Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", 1.0/3.0, None),
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", -1.0, Some("example.com1".to_string())),
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", -1.0, Some("example.com1")),
                 Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", 1.0/3.0, None),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com1".to_string())),
-                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com2".to_string()))
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com1")),
+                Follow::new("pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy", -1.0, Some("example.com2"))
             ],
         );
         let list2 = FollowList::new_with_follows(
-            "pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey".to_string(),
-            "Alice".to_string(),
+            "pk:1bdbmmxenbxuybfai88f1xg1djrpujxix5hw6fh9am7f4x5wapey",
+            "Alice",
             vec![
                 Follow::new("pk:s9y93dtpoibsfcnct35onkeyuiup9dfxwpftgerdqd7u84jcmkfy", 1.0/3.0, None),
-                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", -1.0, Some("example.com1".to_string())),
+                Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", -1.0, Some("example.com1")),
                 Follow::new("pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy", 1.0/3.0, None),
                 Follow::new("pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso", 1.0/3.0, None),
             ],
@@ -210,18 +207,18 @@ mod tests {
     #[test]
     fn pubkey_is_list_and_domain() {
         let list1 = FollowList::new_with_follows(
-            "me".to_string(),
-            "me".to_string(),
+            "me",
+            "me",
             vec![
                 Follow::new("d2", 1.0, None),
-                Follow::new("d2", 0.5, Some("example.com".to_string())),
+                Follow::new("d2", 0.5, Some("example.com")),
             ],
         );
         let list2 = FollowList::new_with_follows(
-            "d2".to_string(),
-            "d2".to_string(),
+            "d2",
+            "d2",
             vec![
-                Follow::new("d1", 0.5, Some("example.com".to_string())),
+                Follow::new("d1", 0.5, Some("example.com")),
             ],
         );
 

@@ -45,9 +45,9 @@ mod tests {
             pubkey: "n2".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("n2".to_string(), "d1".to_string(), 1.0, Some("example.com".to_string())),
-                WotFollow::new("n2".to_string(), "d2".to_string(), -1.0, Some("example.com".to_string())),
-                WotFollow::new("n2".to_string(), "n3".to_string(), -1.0, None),
+                WotFollow::new("n2", "d1", 1.0, Some("example.com")),
+                WotFollow::new("n2", "d2", -1.0, Some("example.com")),
+                WotFollow::new("n2", "n3", -1.0, None),
             ]
         });
 
@@ -55,9 +55,9 @@ mod tests {
             pubkey: "n1".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("n1".to_string(), "d1".to_string(), -0.5, Some("example.com".to_string())),
-                WotFollow::new("n1".to_string(), "d2".to_string(), 0.0, Some("example.com".to_string())),
-                WotFollow::new("n1".to_string(), "me".to_string(), 0.0, None)
+                WotFollow::new("n1", "d1", -0.5, Some("example.com")),
+                WotFollow::new("n1", "d2", 0.0, Some("example.com")),
+                WotFollow::new("n1", "me", 0.0, None)
             ]
         });
 
@@ -65,7 +65,7 @@ mod tests {
             pubkey: "n3".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("n3".to_string(), "me".to_string(), -0.5, None),
+                WotFollow::new("n3", "me", -0.5, None),
             ]
         });
 
@@ -73,8 +73,8 @@ mod tests {
             pubkey: "me".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("me".to_string(), "n1".to_string(), 1.0, None),
-                WotFollow::new("me".to_string(), "n2".to_string(), 0.5, None)
+                WotFollow::new("me", "n1", 1.0, None),
+                WotFollow::new("me", "n2", 0.5, None)
             ]
         });
 

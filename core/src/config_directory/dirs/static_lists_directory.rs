@@ -140,8 +140,8 @@ mod tests {
         let _ = config.create_if_it_does_not_exist("test");
 
         let list = FollowList::new_with_follows(
-            "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso".to_string(),
-            "myList".to_string(),
+            "pk:rcwgkobba4yupekhzxz6imtkyy1ph33emqt16fw6q6cnnbhdoqso",
+            "myList",
             vec![
                 Follow::new(
                     "pk:kgoxg9i5czhqor1h3b35exfq7hfkpgnycush4n9pab9w3s4a3rjy",
@@ -151,7 +151,7 @@ mod tests {
                 Follow::new(
                     "pk:1zpo3gfh6657dh8f5rq7z4rzyo3u1tob14r3hcaa6bc9498nbjiy",
                     -1.0,
-                    Some("example.com".to_string()),
+                    Some("example.com"),
                 ),
             ],
         );

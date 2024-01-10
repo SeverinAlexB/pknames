@@ -65,7 +65,7 @@ mod tests {
             pubkey: "registrar".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("registrar".to_string(), "goodexample".to_string(), 1.0, Some("example.com".to_string())),
+                WotFollow::new("registrar", "goodexample", 1.0, Some("example.com")),
             ]
         });
 
@@ -73,9 +73,9 @@ mod tests {
             pubkey: "eve".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("eve".to_string(), "registrar".to_string(), -1.0, Some("example.com".to_string())),
-                WotFollow::new("eve".to_string(), "evilexample".to_string(), 1.0, Some("example.com".to_string())),
-                WotFollow::new("eve".to_string(), "goodexample".to_string(), -1.0, Some("example.com".to_string())),
+                WotFollow::new("eve", "registrar", -1.0, Some("example.com")),
+                WotFollow::new("eve", "evilexample", 1.0, Some("example.com")),
+                WotFollow::new("eve", "goodexample", -1.0, Some("example.com")),
             ]
         });
 
@@ -84,8 +84,8 @@ mod tests {
             pubkey: "me".to_string(),
             alias: "".to_string(),
             follows: vec![
-                WotFollow::new("me".to_string(), "eve".to_string(), 1.0, None),
-                WotFollow::new("me".to_string(), "registrar".to_string(), 0.5, None)
+                WotFollow::new("me", "eve", 1.0, None),
+                WotFollow::new("me", "registrar", 0.5, None)
             ]
         });
 
