@@ -8,8 +8,11 @@ Very simple DNS Server that resolves pknames + pkarr uris.
 Run it
 
 ```bash
-cargo run --bin hermes -- -p 54 -f 8.8.8.8
+cargo run --bin hermes -- -f 8.8.8.8
 ```
+
+*Docker Desktop on MacOS uses the default DNS port 53. Checkout [this guide](https://developer.apple.com/forums/thread/738662) 
+on how to free it to run hermes.
 
 Resolve domain
 
