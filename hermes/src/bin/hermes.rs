@@ -3,6 +3,7 @@
 use std::env;
 use std::net::Ipv4Addr;
 use std::sync::Arc;
+use std::sync::mpsc::channel;
 
 use getopts::Options;
 
@@ -119,6 +120,15 @@ fn main() {
     if context.enable_api {
         let webserver = WebServer::new(context.clone());
         webserver.run_webserver();
+    } else {
+        let (tx, rx) = channel();
+    
+        ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))
+            .expect("Error setting Ctrl-C handler");
+        println!("Waiting for Ctrl-C...");
+        rx.recv().expect("Could not receive from channel.");
+        println!("Got it! Exiting..."); 
+
     }
 }
 

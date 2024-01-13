@@ -74,7 +74,7 @@ impl ServerContext {
             allow_recursive: true,
             enable_udp: true,
             enable_tcp: true,
-            enable_api: true,
+            enable_api: false,
             statistics: ServerStatistics {
                 tcp_query_count: AtomicUsize::new(0),
                 udp_query_count: AtomicUsize::new(0),

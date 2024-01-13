@@ -19,3 +19,4 @@ tiny_http = "0.7.0"
 pknames_core = { path = "../core"}
 pkarr = "1.0.1"
 zbase32 = "0.1.2"
+ctrlc = "3.4.2"

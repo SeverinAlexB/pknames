@@ -71,7 +71,7 @@ impl<'a> WebServer<'a> {
     }
 
     pub fn run_webserver(self) {
-        let webserver = match Server::http(("0.0.0.0", self.context.api_port)) {
+        let webserver = match Server::http(("127.0.0.1", self.context.api_port)) {
             Ok(x) => x,
             Err(e) => {
                 eprintln!("Failed to start web server: {:?}", e);
