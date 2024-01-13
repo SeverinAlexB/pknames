@@ -2658,7 +2658,7 @@ dependencies = [
  "mainline",
  "rand 0.8.5",
  "self_cell",
- "simple-dns",
+ "simple-dns 0.5.7",
  "thiserror",
  "url",
  "z32",
@@ -2725,12 +2725,16 @@ name = "pknamescli"
 version = "0.1.0"
 dependencies = [
  "assert_approx_eq",
+ "chrono",
  "clap",
+ "csv",
+ "ctrlc",
  "pkarr",
  "pknames_core",
  "serde",
  "serde_json",
  "shellexpand",
+ "simple-dns 0.6.0",
  "zbase32",
 ]
 
@@ -3268,6 +3272,15 @@ name = "simple-dns"
 version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cae9a3fcdadafb6d97f4c0e007e4247b114ee0f119f650c3cbf3a8b3a1479694"
+dependencies = [
+ "bitflags 2.4.1",
+]
+
+[[package]]
+name = "simple-dns"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28d0d0b272355cdfd1308ddd5c9f18cd7a62efe866de502767ff61a8e3ec2343"
 dependencies = [
  "bitflags 2.4.1",
 ]

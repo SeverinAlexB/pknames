@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use crate::cli::commands::{lookup::cli_lookup, ls::cli_ls};
 use std::path::{PathBuf, Path};
 
-use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove};
+use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove, publish::cli_publish};
 
 /**
  * Main cli entry function.
@@ -41,6 +41,11 @@ pub fn run_cli() {
             .about("Remove a follow from your list.")
             .arg(clap::Arg::new("pubkey").required(true).help("Public key to remove."))
             .arg(clap::Arg::new("domain").required(false).help("Attributed domain."))
+        )
+        .subcommand(
+            clap::Command::new("publish")
+            .about("Publish dns records.")
+            .arg(clap::Arg::new("csv_path").required(false).help("File path to the dns records csv file.").default_value("./records.csv"))
         );
     let matches = cmd.get_matches();
     let verbose: bool = *matches.get_one("verbose").unwrap();
@@ -71,6 +76,9 @@ pub fn run_cli() {
         },
         Some(("remove", matches)) => {
             cli_remove(matches, folder_buf, verbose);
+        },
+        Some(("publish", matches)) => {
+            cli_publish(matches, folder_buf, verbose);
         },
         _ => {
             // Default command
