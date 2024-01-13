@@ -1,7 +1,7 @@
 pknames DNS server
 =================
 
-Very simple DNS Server that resolves pknames + pkarr uris.
+Very simple DNS Server that resolves pknames + pkarr pubkeys.
 
 ## Getting Started
 
@@ -11,13 +11,25 @@ Run it
 cargo run --bin hermes -- -f 8.8.8.8
 ```
 
-*Docker Desktop on MacOS uses the default DNS port 53. Checkout [this guide](https://developer.apple.com/forums/thread/738662) 
-on how to free it to run hermes.
+> Address already in use macOS: Docker Desktop on MacOS uses the  port 53. Checkout [this guide](https://developer.apple.com/forums/thread/738662) 
+on how to free it.
 
-Resolve domain
+**Resolve domain**
 
 ```bash
-nslookup example.com localhost -port=54
+nslookup example.com localhost
+```
+
+**Web Browser**
+
+Any domain that does not end in a well-known TLD (.com, .de, .ch) is turned into a search by modern browsers.
+The trick is to add a slash `/` at the end of the domain to force the browser to load the website.
+
+```
+pknames.p2p/                -> Resolves to website
+http://pknames.p2p          -> Resolves to website
+http://pknames.p2p/about    -> Resolves to website
+pknames.p2p                 -> Google Search
 ```
 
 

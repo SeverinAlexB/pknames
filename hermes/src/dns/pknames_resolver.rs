@@ -116,7 +116,7 @@ fn parse_pkarr_uri(uri: &str) -> Option<PublicKey> {
 /**
  * Resolves a domain with pkarr.
  */
-pub fn resolve_pkarr_pubkey(qname: &str, pubkey: PublicKey, qtype: QueryType) -> Option<DnsPacket> {
+fn resolve_pkarr_pubkey(qname: &str, pubkey: PublicKey, qtype: QueryType) -> Option<DnsPacket> {
     let pkarr = PkarrClient::new();
     let signed_packet = pkarr.resolve(pubkey.clone())?;
     let records: Vec<&ResourceRecord> = signed_packet.resource_records(qname).collect();
@@ -159,9 +159,10 @@ pub fn resolve_pknames_or_pkarr_pubkey(qname: &str, qtype: QueryType) -> Result<
         }
     }
 
+
+
     let result = resolve_standalone(qname, "~/.pknames");
     if let Err(e) = result {
-        eprintln!("Error resolving pkname: {}", e);
         return Err(ResolveError::NoServerFound);
     };
 

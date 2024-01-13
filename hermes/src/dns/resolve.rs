@@ -53,12 +53,18 @@ pub trait DnsResolver {
             }
         }
 
-        // Lookup pknames - if fail, lookup regular
+        // Lookup pknames - if fail lookup regular
         let pknames_result = resolve_pknames_or_pkarr_pubkey(qname, qtype.clone());
         match pknames_result {
-            Ok(val) => Ok(val),
+            Ok(result) => {
+                let context = self.get_context();
+                context.cache.store(&result.answers)?;
+                println!("pknames -> {} {:?}", qname, qtype);
+                Ok(result)
+            },
             Err(_) => {
                 // Fallback to ICANN
+                println!("ICANN -> {} {:?}", qname, qtype);
                 self.perform(qname, qtype)
             }
         }
