@@ -1,7 +1,7 @@
 use std::{path::{PathBuf, Path}, fs::{File, self, ReadDir}, error::Error, io::Read, net::Ipv4Addr};
 
 use csv::Trim;
-use pkarr::{dns::{ResourceRecord, Name, rdata::RData, Packet}, SignedPacket};
+use pkarr::{dns::{ResourceRecord, Name, rdata::RData, Packet}, SignedPacket, Keypair};
 
 struct CsvRecord {
     typ: String,
@@ -14,7 +14,7 @@ struct CsvRecord {
 impl CsvRecord {
 
 
-    fn to_resource_record<'a>(&'a self) -> Result<ResourceRecord<'a>, Box<dyn Error>> {
+    pub fn to_resource_record<'a>(&'a self) -> Result<ResourceRecord<'a>, Box<dyn Error>> {
         let name: Name<'a> = Name::try_from(self.domain.as_str())?;
         let rdata = match self.typ.as_str() {
             "A" => {
@@ -75,7 +75,23 @@ impl CsvRecords {
             records: list
         })
     }
+
+    pub fn to_signed_packet(&self, keypair: &Keypair) -> Result<SignedPacket, Box<dyn Error>> {
+        // Check for record validity
+        for record in self.records.iter() {
+            record.to_resource_record()?;
+        };
+
+        let mut packet = Packet::new_reply(0);
+        packet.answers = self.records.iter().map(|r| {
+            r.to_resource_record().unwrap()
+        }).collect();
+
+        Ok(SignedPacket::from_packet(&keypair, &packet)?)
+    }
 }
+
+
 
 // impl<'a> TryInto<ResourceRecord<'a>> for CsvRecord {
 //     type Error = Box<dyn Error>;
@@ -99,7 +115,7 @@ impl CsvRecords {
 
 #[cfg(test)]
 mod tests {
-    use crate::publish::records_file::CsvRecords;
+    use crate::publish::csv_records::CsvRecords;
 
     #[test]
     fn parse_csv() {
