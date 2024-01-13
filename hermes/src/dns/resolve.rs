@@ -9,7 +9,7 @@ use derive_more::{Display, Error, From};
 use crate::dns::context::ServerContext;
 use crate::dns::protocol::{DnsPacket, QueryType, ResultCode};
 
-use super::pknames_resolver::resolve_pknames;
+use super::pknames_resolver::resolve_pknames_or_pkarr_pubkey;
 
 #[derive(Debug, Display, From, Error)]
 pub enum ResolveError {
@@ -54,12 +54,11 @@ pub trait DnsResolver {
         }
 
         // Lookup pknames - if fail, lookup regular
-        let pknames_result = resolve_pknames(qname, qtype.clone());
+        let pknames_result = resolve_pknames_or_pkarr_pubkey(qname, qtype.clone());
         match pknames_result {
             Ok(val) => Ok(val),
             Err(_) => {
                 // Fallback to ICANN
-                println!("Fallback to ICANN");
                 self.perform(qname, qtype)
             }
         }
