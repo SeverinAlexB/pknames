@@ -2725,8 +2725,10 @@ name = "pknamescli"
 version = "0.1.0"
 dependencies = [
  "assert_approx_eq",
+ "chrono",
  "clap",
  "csv",
+ "ctrlc",
  "pkarr",
  "pknames_core",
  "serde",

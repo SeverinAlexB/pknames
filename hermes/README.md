@@ -32,6 +32,13 @@ http://pknames.p2p/about    -> Resolves to website
 pknames.p2p                 -> Google Search
 ```
 
+## Supported Records
+
+- A
+- AAAA
+- TXT
+- CNAME
+
 
 ## Thanks
 
