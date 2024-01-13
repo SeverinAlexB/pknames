@@ -150,7 +150,7 @@ impl MainDirectory {
      * zbase32 public key in format pk:...
      */
     pub fn get_public_key_uri(&self) -> String {
-        let pair = self.read_or_create_keypair().expect("KeyPair exists.");
+        let pair = self.read_or_create_keypair();
         pair.to_uri_string()
     }
 }
