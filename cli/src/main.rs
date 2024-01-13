@@ -1,6 +1,6 @@
 use cli::cli::run_cli;
 use pknames_core::{prediction::{graph::WotGraph, node::{WotNode, WotFollow}}, visualization::visualization::visualize_graph};
-
+mod publish;
 mod cli;
 
 fn main() {

@@ -11,7 +11,7 @@ pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
     let lists = dir.static_lists_dir.read_lists().expect("Readable directory");
     if lists.len() == 0 {
         eprintln!("No lists found in \"{}\".", dir.static_lists_dir.path.to_str().unwrap());
-        return;
+        std::process::exit(1);
     };
 
     for list in lists.iter() {

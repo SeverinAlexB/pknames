@@ -5,7 +5,9 @@ use std::sync::Arc;
 use std::vec::Vec;
 
 use derive_more::{Display, Error, From};
+use pknames_core::resolve::is_icann_tld;
 
+use crate::dns;
 use crate::dns::context::ServerContext;
 use crate::dns::protocol::{DnsPacket, QueryType, ResultCode};
 
@@ -53,23 +55,24 @@ pub trait DnsResolver {
             }
         }
 
-        // Lookup pknames - if fail lookup regular
-        let pknames_result = resolve_pknames_or_pkarr_pubkey(qname, qtype.clone());
-        match pknames_result {
-            Ok(result) => {
+        if !is_icann_tld(qname) {
+            let pknames_result = resolve_pknames_or_pkarr_pubkey(qname, qtype.clone());
+            if pknames_result.is_ok() {
+                let dns_packet = pknames_result.unwrap();
                 let context = self.get_context();
-                context.cache.store(&result.answers)?;
-                println!("pknames -> {} {:?}", qname, qtype);
-                Ok(result)
-            },
-            Err(_) => {
-                // Fallback to ICANN
-                println!("ICANN -> {} {:?}", qname, qtype);
-                self.perform(qname, qtype)
+                context.cache.store(&dns_packet.answers)?;
+                for answer in dns_packet.answers.iter() {
+                    println!("pknames -> {} {:?}", qname, answer);
+                }
+
+                return Ok(dns_packet)
+            } else {
+                eprintln!("pknames failed -> {} {:?}", qname, qtype);
             }
         }
 
-        // self.perform(qname, qtype)
+        println!("ICANN -> {} {:?}", qname, qtype);
+        self.perform(qname, qtype)
     }
 
     fn perform(&mut self, qname: &str, qtype: QueryType) -> Result<DnsPacket>;

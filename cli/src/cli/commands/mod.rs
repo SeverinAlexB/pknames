@@ -3,3 +3,4 @@ pub mod ls;
 pub mod getinfo;
 pub mod add;
 pub mod remove;
+pub mod publish;
