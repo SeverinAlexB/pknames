@@ -7,7 +7,6 @@ use std::vec::Vec;
 use derive_more::{Display, Error, From};
 use pknames_core::resolve::is_icann_tld;
 
-use crate::dns;
 use crate::dns::context::ServerContext;
 use crate::dns::protocol::{DnsPacket, QueryType, ResultCode};
 

@@ -119,6 +119,99 @@ impl CsvRecords {
     }
 }
 
+impl TryFrom<ResourceRecord<'_>> for CsvRecord {
+    type Error = String;
+
+    fn try_from(value: ResourceRecord<'_>) -> Result<Self, Self::Error> {
+        let domain = value.name.to_string();
+        let ttl = value.ttl;
+
+        match value.rdata {
+            RData::A(a) => {
+                Ok(CsvRecord {
+                    domain,
+                    ttl,
+                    typ: "A".to_string(),
+                    data: Ipv4Addr::from(a.address).to_string()
+                })
+            },
+            RData::AAAA(a) => {
+                Ok(CsvRecord {
+                    domain,
+                    ttl,
+                    typ: "AAAA".to_string(),
+                    data: Ipv6Addr::from(a.address).to_string()
+                })
+            },
+            RData::TXT(a) => {
+                Ok(CsvRecord {
+                    domain,
+                    ttl,
+                    typ: "TXT".to_string(),
+                    data: a.try_into().expect("Should be valid txt string")
+                })
+            },
+            RData::CNAME(val) => {
+                let host = val.0.to_string();
+                Ok(CsvRecord {
+                    domain,
+                    ttl,
+                    typ: "CNAME".to_string(),
+                    data: host
+                })
+            }
+            _ => {
+                Err("Not implemented record typ".to_string())
+            }
+        }
+    }
+}
+
+// impl From<ResourceRecord<'_>> for CsvRecord {
+//     fn from(value: ResourceRecord) -> Self {
+//         let domain = value.name.to_string();
+//         let ttl = value.ttl;
+
+//         match value.rdata {
+//             RData::A(a) => {
+//                 CsvRecord {
+//                     domain,
+//                     ttl,
+//                     typ: "A".to_string(),
+//                     data: Ipv4Addr::from(a.address).to_string()
+//                 }
+//             },
+//             RData::AAAA(a) => {
+//                 CsvRecord {
+//                     domain,
+//                     ttl,
+//                     typ: "AAAA".to_string(),
+//                     data: Ipv6Addr::from(a.address).to_string()
+//                 }
+//             },
+//             RData::TXT(a) => {
+//                 CsvRecord {
+//                     domain,
+//                     ttl,
+//                     typ: "TXT".to_string(),
+//                     data: a.try_into().expect("Should be valid txt string")
+//                 }
+//             },
+//             RData::CNAME(val) => {
+//                 let host = val.0.to_string();
+//                 CsvRecord {
+//                     domain,
+//                     ttl,
+//                     typ: "CNAME".to_string(),
+//                     data: host
+//                 }
+//             }
+//             _ => {
+//                 todo!("Not implemented record typ")
+//             }
+//         }
+//     }
+// }
 
 
 #[cfg(test)]

@@ -5,3 +5,4 @@ pub mod add;
 pub mod remove;
 pub mod publish;
 mod publisher;
+pub mod resolve;

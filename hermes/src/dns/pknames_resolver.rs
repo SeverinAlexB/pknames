@@ -63,7 +63,7 @@ impl<'a> TryFrom<ResourceRecord<'a>> for DnsRecord {
                 Ok(DnsRecord::CNAME { domain, ttl, host })
             }
             RData::TXT(val) => {
-                let data = val.try_into().expect("Should be valid cname string");
+                let data = val.try_into().expect("Should be valid txt string");
                 Ok(DnsRecord::TXT { domain, ttl, data })
             }
             RData::AAAA(addr) => {

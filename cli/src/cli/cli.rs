@@ -1,9 +1,9 @@
 use clap::ArgMatches;
 
 use crate::cli::commands::{lookup::cli_lookup, ls::cli_ls};
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
-use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove, publish::cli_publish};
+use super::commands::{add::cli_add, getinfo::cli_getinfo, publish::cli_publish, remove::cli_remove, resolve::cli_resolve};
 
 /**
  * Main cli entry function.
@@ -11,41 +11,101 @@ use super::commands::{getinfo::cli_getinfo, add::cli_add, remove::cli_remove, pu
 pub fn run_cli() {
     let cmd = clap::Command::new("pknames")
         .about("A web of trust system to resolve domain names to pkarr public keys.")
-        .arg(clap::Arg::new("directory").short('d').long("directory").required(false).help("pknames source directory.").default_value("~/.pknames"))
-        .arg(clap::Arg::new("verbose").short('v').long("verbose").required(false).num_args(0).help("Show verbose output."))
-        .subcommand(
-            clap::Command::new("getinfo")
-            .about("General information."),
+        .arg(
+            clap::Arg::new("directory")
+                .short('d')
+                .long("directory")
+                .required(false)
+                .help("pknames source directory.")
+                .default_value("~/.pknames"),
         )
+        .arg(
+            clap::Arg::new("verbose")
+                .short('v')
+                .long("verbose")
+                .required(false)
+                .num_args(0)
+                .help("Show verbose output."),
+        )
+        .subcommand(clap::Command::new("getinfo").about("General information."))
         .subcommand(
             clap::Command::new("lookup")
-            .about("Lookup the pubkey of a domain.")
-            .arg(clap::Arg::new("ui").short('u').long("ui").required(false).num_args(0).help("Show graph in a ui frame."))
-            .arg(clap::Arg::new("domain").required(true).help("Domain to resolve. For example: example.com."))
+                .about("Lookup the pubkey of a domain.")
+                .arg(
+                    clap::Arg::new("ui")
+                        .short('u')
+                        .long("ui")
+                        .required(false)
+                        .num_args(0)
+                        .help("Show graph in a ui frame."),
+                )
+                .arg(
+                    clap::Arg::new("domain")
+                        .required(true)
+                        .help("Domain to resolve. For example: example.com."),
+                ),
         )
         .subcommand(
             clap::Command::new("ls")
-            .about("List your follow lists.")
-            .arg(clap::Arg::new("ui").short('u').long("ui").required(false).num_args(0).help("Show graph in a ui frame."))
-            .arg(clap::Arg::new("domain").short('d').long("domain").required(false).help("Prune graph by domain."))
+                .about("List your follow lists.")
+                .arg(
+                    clap::Arg::new("ui")
+                        .short('u')
+                        .long("ui")
+                        .required(false)
+                        .num_args(0)
+                        .help("Show graph in a ui frame."),
+                )
+                .arg(
+                    clap::Arg::new("domain")
+                        .short('d')
+                        .long("domain")
+                        .required(false)
+                        .help("Prune graph by domain."),
+                ),
         )
         .subcommand(
             clap::Command::new("add")
-            .about("Add a follow to your list.")
-            .arg(clap::Arg::new("pubkey").required(true).help("Public key to add."))
-            .arg(clap::Arg::new("trust").required(true).help("Trust value between -1 and 1."))
-            .arg(clap::Arg::new("domain").required(false).help("Attribute a domain to this public key."))
+                .about("Add a follow to your list.")
+                .arg(clap::Arg::new("pubkey").required(true).help("Public key to add."))
+                .arg(
+                    clap::Arg::new("trust")
+                        .required(true)
+                        .help("Trust value between -1 and 1."),
+                )
+                .arg(
+                    clap::Arg::new("domain")
+                        .required(false)
+                        .help("Attribute a domain to this public key."),
+                ),
         )
         .subcommand(
             clap::Command::new("remove")
-            .about("Remove a follow from your list.")
-            .arg(clap::Arg::new("pubkey").required(true).help("Public key to remove."))
-            .arg(clap::Arg::new("domain").required(false).help("Attributed domain."))
+                .about("Remove a follow from your list.")
+                .arg(clap::Arg::new("pubkey").required(true).help("Public key to remove."))
+                .arg(clap::Arg::new("domain").required(false).help("Attributed domain.")),
         )
         .subcommand(
             clap::Command::new("publish")
-            .about("Publish dns records.")
-            .arg(clap::Arg::new("csv_path").required(false).help("File path to the dns records csv file.").default_value("./records.csv"))
+                .about("Publish pkarr dns records.")
+                .arg(
+                    clap::Arg::new("csv_path")
+                        .required(false)
+                        .help("File path to the dns records csv file.")
+                        .default_value("./records.csv"),
+                )
+                .arg(
+                    clap::Arg::new("once")
+                        .long("once")
+                        .required(false)
+                        .num_args(0)
+                        .help("File path to the dns records csv file."),
+                ),
+        )
+        .subcommand(
+            clap::Command::new("resolve")
+                .about("Resolve pkarr dns records.")
+                .arg(clap::Arg::new("pubkey").required(false).help("Pkarr public key uri.")),
         );
     let matches = cmd.get_matches();
     let verbose: bool = *matches.get_one("verbose").unwrap();
@@ -64,28 +124,29 @@ pub fn run_cli() {
     match matches.subcommand() {
         Some(("ls", matches)) => {
             cli_ls(matches, folder_buf, verbose);
-        },
+        }
         Some(("lookup", matches)) => {
             cli_lookup(matches, folder_buf, verbose);
-        },
+        }
         Some(("getinfo", matches)) => {
             cli_getinfo(matches, folder_buf, verbose);
-        },
+        }
         Some(("add", matches)) => {
             cli_add(matches, folder_buf, verbose);
-        },
+        }
         Some(("remove", matches)) => {
             cli_remove(matches, folder_buf, verbose);
-        },
+        }
         Some(("publish", matches)) => {
             cli_publish(matches, folder_buf, verbose);
-        },
+        }
+        Some(("resolve", matches)) => {
+            cli_resolve(matches, folder_buf, verbose);
+        }
         _ => {
-            // Default command
-            cli_lookup(&matches, folder_buf, verbose);
-        },
+            unimplemented!("command not implemented")
+        }
     };
-
 }
 
 /**
@@ -104,14 +165,14 @@ fn validate_directory(matches: &ArgMatches) -> Result<PathBuf, String> {
         if path_buf.is_dir() {
             return Ok(path_buf);
         } else {
-            return Err(format!("Given path must be a directory, not a file. {}", input))
+            return Err(format!("Given path must be a directory, not a file. {}", input));
         }
     };
 
     // Folder does not exist. Let's check if we can create the folder in the parent directory.
     let parent = path_buf.parent();
     if parent.is_none() {
-        return Err(format!("Directory not found. {}", input))
+        return Err(format!("Directory not found. {}", input));
     };
     let parent_buf = PathBuf::from(parent.unwrap());
     if !parent_buf.exists() {

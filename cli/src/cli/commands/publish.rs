@@ -1,4 +1,5 @@
-use std::path::{PathBuf, Path};
+use std::{path::{PathBuf, Path}, fs::ReadDir};
+use chrono::Duration;
 use clap::ArgMatches;
 use pknames_core::config_directory::dirs::main_directory::MainDirectory;
 
@@ -17,6 +18,8 @@ fn parse_csv_path(matches: &ArgMatches) -> PathBuf {
 
 
 pub fn cli_publish(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
+    let interval = Duration::minutes(60);
+    let once: bool = *matches.get_one("once").unwrap();
     let csv_path = parse_csv_path(matches);
     let csv_records = CsvRecords::from_path(&csv_path);
     if let Err(e) = csv_records {
@@ -37,15 +40,26 @@ pub fn cli_publish(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
         std::process::exit(1);
     }
 
-    println!("Announce {} records", records.records.len());
+    println!("Read {} records from {}", records.records.len(), csv_path.to_str().unwrap());
     for record in records.records.iter() {
         println!("- {}", record);
     }
+    if once {
+        println!("Announce once.");
+    } else {
+        println!("Announce every {}min. Stop with Ctrl-C...", interval.num_minutes());
+    }
+    println!();
 
     let packet = packet_result.unwrap();
     let publisher = PkarrPublisher::new(packet);
 
-    publisher.run();
+    if once {
+        publisher.run_once();
+    } else {
+        publisher.run(interval);
+    }
+
 
 
 

@@ -1,49 +1,50 @@
-use std::{thread, time::Duration, sync::mpsc::channel};
+use std::{sync::mpsc::channel, io::{self, Write}};
 use chrono;
-use pkarr::{Keypair, PkarrClient, SignedPacket};
+use pkarr::{PkarrClient, SignedPacket};
 
 pub struct PkarrPublisher {
-    pub packet: SignedPacket,
-    pub wait_time: Duration,
+    pub packet: SignedPacket
 }
 
 /**
- * Continuesly publishes the package
+ * Continuously publishes dns records to pkarr
  */
 impl PkarrPublisher {
     pub fn new(packet: SignedPacket) -> Self {
         PkarrPublisher {
-            packet,
-            wait_time: Duration::from_secs(60*60), // 1hr as recommended by the spec
+            packet
         }
     }
-    pub fn run_once(&self) -> Result<(), pkarr::Error> {
+    
+    pub fn run_once(&self) -> () {
         let client = PkarrClient::new();
-        let res = client.publish(&self.packet)?;
-        Ok(())
+        print!("Hang on...");
+        io::stdout().flush().unwrap();
+        let result = client.publish(&self.packet);
+        print!("\r");
+        // std::io::stdout().flush();
+        if result.is_ok() {
+            println!("{} Successfully announced.", chrono::offset::Local::now());
+        } else {
+            println!("{} Error {}", chrono::offset::Local::now(), result.unwrap_err().to_string());
+        };
+
     }
 
-    pub fn run(&self){
+    pub fn run(&self, interval: chrono::Duration){
         let (tx, rx) = channel();
     
         ctrlc::set_handler(move || tx.send(()).expect("Could not send signal on channel."))
             .expect("Error setting Ctrl-C handler");
-        println!("Stop with Ctrl-C...");
-    
         loop {
-            let result = self.run_once();
-            if (result.is_ok()) {
-                println!("{} Announced successfully.", chrono::offset::Local::now());
-            } else {
-                println!("{} Error {}", chrono::offset::Local::now(), result.unwrap_err().to_string());
-            }
+            self.run_once();
 
-            let wait_result = rx.recv_timeout(self.wait_time);
+            let wait_result = rx.recv_timeout(interval.to_std().expect("Valid duration expected"));
             if wait_result.is_ok() {
                 break;
             }
         }
-
+        println!();
         println!("Got it! Exiting...");
     }
 }
@@ -51,11 +52,7 @@ impl PkarrPublisher {
 #[cfg(test)]
 mod tests {
     use pkarr::Keypair;
-
-    
-
     use crate::cli::commands::publisher::csv_records::CsvRecords;
-
     use super::PkarrPublisher;
 
     fn get_test_keypair() -> Keypair {
@@ -80,7 +77,7 @@ mod tests {
         let parsed = CsvRecords::from_csv(csv).unwrap();
         let packet = parsed.to_signed_packet(&keypair).unwrap();
         let publisher = PkarrPublisher::new(packet);
-        publisher.run_once().unwrap();
+        publisher.run_once();
     }
 
     #[test]
@@ -96,6 +93,6 @@ mod tests {
         let parsed = CsvRecords::from_csv(csv).unwrap();
         let packet = parsed.to_signed_packet(&keypair).unwrap();
         let publisher = PkarrPublisher::new(packet);
-        // publisher.run()
+        // publisher.run(Duration::from_secs(60*60))
     }
 }
