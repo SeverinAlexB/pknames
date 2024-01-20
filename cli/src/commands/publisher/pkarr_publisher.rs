@@ -52,7 +52,7 @@ impl PkarrPublisher {
 #[cfg(test)]
 mod tests {
     use pkarr::Keypair;
-    use crate::commands::publisher::csv_records::CsvRecords;
+    use crate::commands::publisher::pkarr_records::PkarrRecords;
     use super::PkarrPublisher;
 
     fn get_test_keypair() -> Keypair {
@@ -74,7 +74,7 @@ mod tests {
         ";
 
         let keypair = get_test_keypair();
-        let parsed = CsvRecords::from_csv(csv).unwrap();
+        let parsed = PkarrRecords::from_tabfile(csv).unwrap();
         let packet = parsed.to_signed_packet(&keypair).unwrap();
         let publisher = PkarrPublisher::new(packet);
         publisher.run_once();
@@ -90,7 +90,7 @@ mod tests {
         ";
 
         let keypair = get_test_keypair();
-        let parsed = CsvRecords::from_csv(csv).unwrap();
+        let parsed = PkarrRecords::from_tabfile(csv).unwrap();
         let packet = parsed.to_signed_packet(&keypair).unwrap();
         let publisher = PkarrPublisher::new(packet);
         // publisher.run(Duration::from_secs(60*60))

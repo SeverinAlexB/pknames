@@ -1,9 +1,9 @@
-use std::{path::{PathBuf, Path}, fs::{File, self, ReadDir}, error::Error, io::Read, net::{Ipv4Addr, Ipv6Addr}, fmt::Display};
+use std::{path::Path, fs, error::Error, net::{Ipv4Addr, Ipv6Addr}, fmt::Display};
 
 use csv::Trim;
 use pkarr::{dns::{ResourceRecord, Name, rdata::{RData, CNAME, TXT}, Packet}, SignedPacket, Keypair};
 
-pub struct CsvRecord {
+pub struct PkarrRecord {
     pub typ: String,
     pub domain: String,
     pub data: String,
@@ -11,10 +11,10 @@ pub struct CsvRecord {
 }
 
 
-const DEFAULT_TTL: u32 = 43200; // 12 hours
+pub const DEFAULT_TTL: u32 = 43200; // 12 hours
 
 
-impl CsvRecord {
+impl PkarrRecord {
     fn to_resource_record<'a>(&'a self) -> Result<ResourceRecord<'a>, Box<dyn Error>> {
         let name: Name<'a> = Name::try_from(self.domain.as_str())?;
         let rdata = match self.typ.as_str() {
@@ -43,28 +43,27 @@ impl CsvRecord {
     }
 }
 
-impl Display for CsvRecord {
+impl Display for PkarrRecord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {} {} {}", self.typ, self.domain, self.data, self.ttl)
     }
 }
 
-pub struct CsvRecords {
-    pub records: Vec<CsvRecord>
+pub struct PkarrRecords {
+    pub records: Vec<PkarrRecord>
 }
 
-impl CsvRecords {
+impl PkarrRecords {
     pub fn from_path(csv_path: &Path) -> Result<Self, Box<dyn Error>> {
         let content = fs::read_to_string(csv_path)?;
-        Self::from_csv(&content)
+        Self::from_tabfile(&content)
     }
 
-    pub fn from_csv(content: &str) -> Result<Self, Box<dyn Error>> {
-        let mut list: Vec<CsvRecord> = vec![];
+    pub fn from_tabfile(content: &str) -> Result<Self, Box<dyn Error>> {
+        let mut list: Vec<PkarrRecord> = vec![];
         let mut rdr = csv::ReaderBuilder::new()
-        .delimiter(b',')
+        .delimiter(b' ')
         .has_headers(false)
-        .comment(Some(b'#'))
         .flexible(true)
         .trim(Trim::All)
         .from_reader(content.as_bytes());
@@ -73,25 +72,27 @@ impl CsvRecords {
                 break;
             };
             let record = result?;
-            if record.len() < 3 {
+            let is_comment = record.as_slice().contains("#");
+            if is_comment {
                 continue;
-            }
-
-
-            let typ: String = record[0].parse()?;
-            if typ.contains("#") {
-                continue;
-            }
-            let domain: String = record[1].parse()?;
-            let data: String = record[2].parse()?;
-            let ttl = if record.len() == 4 {
-                let ttl_res: Result<u32, _> = record[3].parse();
-                let ttl_option = ttl_res.ok();
-                ttl_option.unwrap_or(DEFAULT_TTL)
-            } else {
-                DEFAULT_TTL
             };
-            list.push(CsvRecord{
+            let values: Vec<&str> = record.into_iter().filter(|val| !val.is_empty()).collect();
+            if values.len() < 3 {
+                continue;
+            }
+            let typ: String = values.get(0).unwrap().parse()?;
+            let domain: String = values.get(1).unwrap().parse()?;
+            let data: String = values.get(2).unwrap().parse()?;
+
+            let mut ttl = DEFAULT_TTL;
+            if values.len() >= 4 {
+                let ttl_res: Result<u32, _> = values.get(3).unwrap().parse();
+                let ttl_option = ttl_res.ok();
+                ttl = ttl_option.unwrap_or(DEFAULT_TTL);
+            }
+
+
+            list.push(PkarrRecord{
                 typ: typ.to_uppercase(),
                 domain,
                 data, 
@@ -99,7 +100,7 @@ impl CsvRecords {
             })
 
         };
-        Ok(CsvRecords {
+        Ok(PkarrRecords {
             records: list
         })
     }
@@ -119,7 +120,7 @@ impl CsvRecords {
     }
 }
 
-impl TryFrom<ResourceRecord<'_>> for CsvRecord {
+impl TryFrom<ResourceRecord<'_>> for PkarrRecord {
     type Error = String;
 
     fn try_from(value: ResourceRecord<'_>) -> Result<Self, Self::Error> {
@@ -128,7 +129,7 @@ impl TryFrom<ResourceRecord<'_>> for CsvRecord {
 
         match value.rdata {
             RData::A(a) => {
-                Ok(CsvRecord {
+                Ok(PkarrRecord {
                     domain,
                     ttl,
                     typ: "A".to_string(),
@@ -136,7 +137,7 @@ impl TryFrom<ResourceRecord<'_>> for CsvRecord {
                 })
             },
             RData::AAAA(a) => {
-                Ok(CsvRecord {
+                Ok(PkarrRecord {
                     domain,
                     ttl,
                     typ: "AAAA".to_string(),
@@ -144,7 +145,7 @@ impl TryFrom<ResourceRecord<'_>> for CsvRecord {
                 })
             },
             RData::TXT(a) => {
-                Ok(CsvRecord {
+                Ok(PkarrRecord {
                     domain,
                     ttl,
                     typ: "TXT".to_string(),
@@ -153,7 +154,7 @@ impl TryFrom<ResourceRecord<'_>> for CsvRecord {
             },
             RData::CNAME(val) => {
                 let host = val.0.to_string();
-                Ok(CsvRecord {
+                Ok(PkarrRecord {
                     domain,
                     ttl,
                     typ: "CNAME".to_string(),
@@ -167,58 +168,12 @@ impl TryFrom<ResourceRecord<'_>> for CsvRecord {
     }
 }
 
-// impl From<ResourceRecord<'_>> for CsvRecord {
-//     fn from(value: ResourceRecord) -> Self {
-//         let domain = value.name.to_string();
-//         let ttl = value.ttl;
-
-//         match value.rdata {
-//             RData::A(a) => {
-//                 CsvRecord {
-//                     domain,
-//                     ttl,
-//                     typ: "A".to_string(),
-//                     data: Ipv4Addr::from(a.address).to_string()
-//                 }
-//             },
-//             RData::AAAA(a) => {
-//                 CsvRecord {
-//                     domain,
-//                     ttl,
-//                     typ: "AAAA".to_string(),
-//                     data: Ipv6Addr::from(a.address).to_string()
-//                 }
-//             },
-//             RData::TXT(a) => {
-//                 CsvRecord {
-//                     domain,
-//                     ttl,
-//                     typ: "TXT".to_string(),
-//                     data: a.try_into().expect("Should be valid txt string")
-//                 }
-//             },
-//             RData::CNAME(val) => {
-//                 let host = val.0.to_string();
-//                 CsvRecord {
-//                     domain,
-//                     ttl,
-//                     typ: "CNAME".to_string(),
-//                     data: host
-//                 }
-//             }
-//             _ => {
-//                 todo!("Not implemented record typ")
-//             }
-//         }
-//     }
-// }
-
 
 #[cfg(test)]
 mod tests {
     use pkarr::Keypair;
 
-    use crate::commands::publisher::csv_records::CsvRecords;
+    use crate::commands::publisher::pkarr_records::{PkarrRecords, DEFAULT_TTL};
 
     fn get_test_keypair() -> Keypair {
         // pk:cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso
@@ -229,43 +184,43 @@ mod tests {
         keypair
     }
 
+
+
     #[test]
-    fn parse_csv() {
+    fn to_signed_packet() {
         let csv = "
         # Type, Domain, Data, TTL
-        A, pknames.p2p, 127.0.0.1, 10
-        TXT, test, helloworld,
-        TXT, test, helloworld, a
+        A pknames.p2p 127.0.0.1 10
+        TXT  test helloworld
         ";
+        let keypair = get_test_keypair();
+        let parsed = PkarrRecords::from_tabfile(csv).unwrap();
+        let signed_packet = parsed.to_signed_packet(&keypair).expect("Valid csv");
+        let packet = signed_packet.packet();
+        assert_eq!(packet.answers.len(), 2)
+    }
 
-        let parsed = CsvRecords::from_csv(csv).unwrap();
+    #[test]
+    fn parse_tabfile() {
+        let csv = "
+        # Type Domain   Data TTL
+         A pknames.p2p   \"127.0.0.1 yolo\" 10
+        TXT  test  helloworld
+        ";
+        let parsed = PkarrRecords::from_tabfile(csv).unwrap();
         assert_eq!(parsed.records.len(), 2);
 
         let ele = parsed.records.get(0).unwrap();
         assert_eq!(ele.typ, "A");
         assert_eq!(ele.domain, "pknames.p2p");
-        assert_eq!(ele.data, "127.0.0.1");
+        assert_eq!(ele.data, "127.0.0.1 yolo");
         assert_eq!(ele.ttl, 10);
 
         let ele = parsed.records.get(1).unwrap();
         assert_eq!(ele.typ, "TXT");
         assert_eq!(ele.domain, "test");
         assert_eq!(ele.data, "helloworld");
-        assert_eq!(ele.ttl, 100);
-    }
-
-    #[test]
-    fn to_signed_packet() {
-        let csv = "
-        # Type, Domain, Data, TTL
-        A, pknames.p2p, 127.0.0.1, 10
-        TXT, test, helloworld,
-        ";
-        let keypair = get_test_keypair();
-        let parsed = CsvRecords::from_csv(csv).unwrap();
-        let signed_packet = parsed.to_signed_packet(&keypair).expect("Valid csv");
-        let packet = signed_packet.packet();
-        assert_eq!(packet.answers.len(), 2)
+        assert_eq!(ele.ttl, DEFAULT_TTL);
     }
 
 

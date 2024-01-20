@@ -3,29 +3,29 @@ use clap::ArgMatches;
 use pkarr::{PkarrClient, PublicKey};
 use pknames_core::config_directory::dirs::main_directory::MainDirectory;
 
-use super::publisher::csv_records::{CsvRecords, CsvRecord};
+use super::publisher::pkarr_records::{PkarrRecords, PkarrRecord};
 
-fn resolve_pkarr(uri: &str) -> CsvRecords {
+fn resolve_pkarr(uri: &str) -> PkarrRecords {
     let client = PkarrClient::new();
     let pubkey: PublicKey = uri.try_into().expect("Should be valid pkarr public key.");
     let res = client.resolve_most_recent(pubkey);
     if res.is_none() {
-        return CsvRecords{records: vec![]};
+        return PkarrRecords{records: vec![]};
     };
     let signed_packet = res.unwrap();
     let packet = signed_packet.packet();
-    let records: Vec<CsvRecord> = packet.answers.iter().filter_map(|answer| {
+    let records: Vec<PkarrRecord> = packet.answers.iter().filter_map(|answer| {
         let answer = answer.clone();
-        let parse_result: Result<CsvRecord, String> = answer.try_into();
+        let parse_result: Result<PkarrRecord, String> = answer.try_into();
         if let Err(e) = parse_result {
             eprintln!("Error parsing record. {}", e);
             return None;
         };
-        let record: CsvRecord = parse_result.unwrap();
+        let record: PkarrRecord = parse_result.unwrap();
         Some(record)
     }).collect();
 
-    CsvRecords {
+    PkarrRecords {
         records
     }
 }

@@ -20,7 +20,8 @@
                 }
             },
             "args": [
-                "publish"
+                "publish",
+                "/Users/severinbuhler/git/pknames/pknames/examples/publish/records.tab"
             ],
             "cwd": "${workspaceFolder}"
         },

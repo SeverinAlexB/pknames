@@ -89,10 +89,10 @@ pub fn run_cli() {
             clap::Command::new("publish")
                 .about("Publish pkarr dns records.")
                 .arg(
-                    clap::Arg::new("csv_path")
+                    clap::Arg::new("tabfile_path")
                         .required(false)
-                        .help("File path to the dns records csv file.")
-                        .default_value("./records.csv"),
+                        .help("File path to the dns records tabfile.")
+                        .default_value("./records.tab"),
                 )
                 .arg(
                     clap::Arg::new("once")
