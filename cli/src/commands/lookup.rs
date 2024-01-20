@@ -5,7 +5,7 @@ use pknames_core::{prediction::{predictor::WotPredictor, graph::WotGraph},  visu
 
 
 
-pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
+pub fn cli_lookup(matches: &ArgMatches, directory: PathBuf, _verbose: bool) {
     let domain: &String = matches.get_one("domain").unwrap();
     println!("Lookup {}", domain);
 

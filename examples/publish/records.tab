@@ -1,3 +1,0 @@
-# Type  Domain          Data        TTL
-A       pknames.p2p     127.0.0.1   10
-TXT     test            helloworld

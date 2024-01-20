@@ -4,7 +4,7 @@ use pknames_core::{ visualization::visualization::visualize_graph, pruning::prun
 
 
 
-pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, verbose: bool) {
+pub fn cli_ls(matches: &ArgMatches, folder_path: PathBuf, _verbose: bool) {
     let dir = MainDirectory::new(folder_path);
     dir.create_if_it_does_not_exist().unwrap();
 

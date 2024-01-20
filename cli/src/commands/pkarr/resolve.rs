@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use pkarr::{PkarrClient, PublicKey};
 use pknames_core::config_directory::dirs::main_directory::MainDirectory;
 
-use super::publisher::pkarr_records::{PkarrRecords, PkarrRecord};
+use super::pkarr_records::{PkarrRecords, PkarrRecord};
 
 fn resolve_pkarr(uri: &str) -> PkarrRecords {
     let client = PkarrClient::new();
@@ -37,7 +37,7 @@ fn get_arg_pubkey(matches: &ArgMatches, default_uri: &String) -> Option<PublicKe
 }
 
 
-pub fn cli_resolve(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
+pub fn cli_resolve(matches: &ArgMatches, directory: PathBuf, _verbose: bool) {
     let dir = MainDirectory::new(directory);
     dir.create_if_it_does_not_exist().unwrap();
     let keypair = dir.read_or_create_keypair();

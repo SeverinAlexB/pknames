@@ -3,6 +3,10 @@ use std::{path::Path, fs, error::Error, net::{Ipv4Addr, Ipv6Addr}, fmt::Display}
 use csv::Trim;
 use pkarr::{dns::{ResourceRecord, Name, rdata::{RData, CNAME, TXT}, Packet}, SignedPacket, Keypair};
 
+/**
+ * Single Pkarr Record.
+ * Todo: Validation and extend possible record types.
+ */
 pub struct PkarrRecord {
     pub typ: String,
     pub domain: String,
@@ -15,7 +19,25 @@ pub const DEFAULT_TTL: u32 = 43200; // 12 hours
 
 
 impl PkarrRecord {
-    fn to_resource_record<'a>(&'a self) -> Result<ResourceRecord<'a>, Box<dyn Error>> {
+    pub fn new(typ: &str, domain: &str, data: &str) -> Self {
+        PkarrRecord {
+            typ: typ.to_string(),
+            domain: domain.to_string(),
+            data: data.to_string(),
+            ttl: DEFAULT_TTL
+        }
+    }
+
+    pub fn new_with_ttl(typ: &str, domain: &str, data: &str, ttl: u32) -> Self {
+        PkarrRecord {
+            typ: typ.to_string(),
+            domain: domain.to_string(),
+            data: data.to_string(),
+            ttl
+        }
+    }
+
+    pub fn to_resource_record<'a>(&'a self) -> Result<ResourceRecord<'a>, Box<dyn Error>> {
         let name: Name<'a> = Name::try_from(self.domain.as_str())?;
         let rdata = match self.typ.as_str() {
             "A" => {
@@ -36,7 +58,7 @@ impl PkarrRecord {
                 RData::TXT(txt)
             },
             _ => {
-                todo!("To be implemented record type")
+                todo!("Unsupported record type")
             }
         };
         Ok(ResourceRecord::new(name, pkarr::dns::CLASS::IN, self.ttl, rdata))
@@ -45,7 +67,7 @@ impl PkarrRecord {
 
 impl Display for PkarrRecord {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {} {} {}", self.typ, self.domain, self.data, self.ttl)
+        write!(f, "{0: <5} | {1: <70} | {2: <20} | {3: <8}", self.typ, self.domain, self.data, self.ttl)
     }
 }
 
@@ -56,10 +78,10 @@ pub struct PkarrRecords {
 impl PkarrRecords {
     pub fn from_path(csv_path: &Path) -> Result<Self, Box<dyn Error>> {
         let content = fs::read_to_string(csv_path)?;
-        Self::from_tabfile(&content)
+        Self::from_conf(&content)
     }
 
-    pub fn from_tabfile(content: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn from_conf(content: &str) -> Result<Self, Box<dyn Error>> {
         let mut list: Vec<PkarrRecord> = vec![];
         let mut rdr = csv::ReaderBuilder::new()
         .delimiter(b' ')
@@ -67,6 +89,7 @@ impl PkarrRecords {
         .flexible(true)
         .trim(Trim::All)
         .from_reader(content.as_bytes());
+
         for result in rdr.records() {
             if result.is_err() {
                 break;
@@ -173,7 +196,7 @@ impl TryFrom<ResourceRecord<'_>> for PkarrRecord {
 mod tests {
     use pkarr::Keypair;
 
-    use crate::commands::publisher::pkarr_records::{PkarrRecords, DEFAULT_TTL};
+    use crate::commands::pkarr::pkarr_records::{PkarrRecords, DEFAULT_TTL};
 
     fn get_test_keypair() -> Keypair {
         // pk:cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso
@@ -194,7 +217,7 @@ mod tests {
         TXT  test helloworld
         ";
         let keypair = get_test_keypair();
-        let parsed = PkarrRecords::from_tabfile(csv).unwrap();
+        let parsed = PkarrRecords::from_conf(csv).unwrap();
         let signed_packet = parsed.to_signed_packet(&keypair).expect("Valid csv");
         let packet = signed_packet.packet();
         assert_eq!(packet.answers.len(), 2)
@@ -207,7 +230,7 @@ mod tests {
          A pknames.p2p   \"127.0.0.1 yolo\" 10
         TXT  test  helloworld
         ";
-        let parsed = PkarrRecords::from_tabfile(csv).unwrap();
+        let parsed = PkarrRecords::from_conf(csv).unwrap();
         assert_eq!(parsed.records.len(), 2);
 
         let ele = parsed.records.get(0).unwrap();

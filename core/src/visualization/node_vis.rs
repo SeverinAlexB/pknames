@@ -57,12 +57,12 @@ impl<E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<PredictedVisWotNode, E, 
 
     fn shapes(&mut self, ctx: &DrawContext) -> Vec<Shape> {
         let mut res = Vec::with_capacity(2);
-        let is_interacted = self.selected || self.dragged;
+        // let is_interacted = self.selected || self.dragged;
 
-        let style = match is_interacted {
-            true => ctx.ctx.style().visuals.widgets.active,
-            false => ctx.ctx.style().visuals.widgets.inactive,
-        };
+        // let style = match is_interacted {
+        //     true => ctx.ctx.style().visuals.widgets.active,
+        //     false => ctx.ctx.style().visuals.widgets.inactive,
+        // };
 
         let mut color = Color32::GREEN;
         if self.power.is_some() {

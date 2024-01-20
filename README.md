@@ -3,7 +3,7 @@
 An experimental Web of Trust (WoT) domain name resolver built on [pkarr](https://github.com/nuhvi/pkarr). WIP.
 
 ```
-➜ cargo run -- --help
+> cargo run --bin pknamescli -- --help
 
 Usage: pknamescli [OPTIONS] [COMMAND]
 
@@ -13,6 +13,7 @@ Commands:
   ls       List your follow lists.
   add      Add a follow to your list.
   remove   Remove a follow from your list.
+  pkarr    Pkarr related commands.
   help     Print this message or the help of the given subcommand(s)
 
 Options:

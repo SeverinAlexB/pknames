@@ -1,9 +1,9 @@
-use std::{path::{PathBuf, Path}, fs::ReadDir};
+use std::path::{PathBuf, Path};
 use chrono::Duration;
 use clap::ArgMatches;
 use pknames_core::config_directory::dirs::main_directory::MainDirectory;
 
-use super::publisher::{pkarr_records::PkarrRecords, self, pkarr_publisher::PkarrPublisher};
+use super::{pkarr_records::PkarrRecords, pkarr_publisher::PkarrPublisher};
 
 
 
@@ -17,7 +17,7 @@ fn parse_tabfile_path(matches: &ArgMatches) -> PathBuf {
 
 
 
-pub fn cli_publish(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
+pub fn cli_publish(matches: &ArgMatches, directory: PathBuf, _verbose: bool) {
     let interval = Duration::minutes(60);
     let once: bool = *matches.get_one("once").unwrap();
     let tabfile_path = parse_tabfile_path(matches);

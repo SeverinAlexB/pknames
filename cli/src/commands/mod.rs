@@ -1,6 +1,4 @@
-pub mod publish;
-mod publisher;
-pub mod resolve;
+pub mod pkarr;
 pub mod lookup;
 pub mod ls;
 pub mod getinfo;

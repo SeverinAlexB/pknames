@@ -3,7 +3,9 @@ use clap::ArgMatches;
 use crate::commands::{lookup::cli_lookup, ls::cli_ls};
 use std::path::{Path, PathBuf};
 
-use super::commands::{add::cli_add, getinfo::cli_getinfo, publish::cli_publish, remove::cli_remove, resolve::cli_resolve};
+use super::commands::{
+    add::cli_add, getinfo::cli_getinfo, pkarr::publish::cli_publish, remove::cli_remove, pkarr::resolve::cli_resolve,
+};
 
 /**
  * Main cli entry function.
@@ -86,26 +88,30 @@ pub fn run_cli() {
                 .arg(clap::Arg::new("domain").required(false).help("Attributed domain.")),
         )
         .subcommand(
-            clap::Command::new("publish")
-                .about("Publish pkarr dns records.")
-                .arg(
-                    clap::Arg::new("tabfile_path")
-                        .required(false)
-                        .help("File path to the dns records tabfile.")
-                        .default_value("./records.tab"),
+            clap::Command::new("pkarr")
+                .about("Pkarr related commands.")
+                .subcommand(
+                    clap::Command::new("resolve")
+                        .about("Resolve pkarr dns records.")
+                        .arg(clap::Arg::new("pubkey").required(false).help("Pkarr public key uri.")),
                 )
-                .arg(
-                    clap::Arg::new("once")
-                        .long("once")
-                        .required(false)
-                        .num_args(0)
-                        .help("File path to the dns records csv file."),
+                .subcommand(
+                    clap::Command::new("publish")
+                        .about("Publish pkarr dns records.")
+                        .arg(
+                            clap::Arg::new("tabfile_path")
+                                .required(false)
+                                .help("File path to the dns records file.")
+                                .default_value("./records.conf"),
+                        )
+                        .arg(
+                            clap::Arg::new("once")
+                                .long("once")
+                                .required(false)
+                                .num_args(0)
+                                .help("File path to the dns records csv file."),
+                        ),
                 ),
-        )
-        .subcommand(
-            clap::Command::new("resolve")
-                .about("Resolve pkarr dns records.")
-                .arg(clap::Arg::new("pubkey").required(false).help("Pkarr public key uri.")),
         );
     let matches = cmd.get_matches();
     let verbose: bool = *matches.get_one("verbose").unwrap();
@@ -137,12 +143,15 @@ pub fn run_cli() {
         Some(("remove", matches)) => {
             cli_remove(matches, folder_buf, verbose);
         }
-        Some(("publish", matches)) => {
-            cli_publish(matches, folder_buf, verbose);
-        }
-        Some(("resolve", matches)) => {
-            cli_resolve(matches, folder_buf, verbose);
-        }
+        Some(("pkarr", matches)) => match matches.subcommand() {
+            Some(("resolve", matches)) => {
+                cli_resolve(matches, folder_buf, verbose);
+            }
+            Some(("publish", matches)) => {
+                cli_publish(matches, folder_buf, verbose);
+            }
+            _ => unimplemented!("command not implemented"),
+        },
         _ => {
             unimplemented!("command not implemented")
         }

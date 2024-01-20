@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use pknames_core::config_directory::{dirs::main_directory::MainDirectory, follow::Follow};
 
 
-pub fn cli_remove(matches: &ArgMatches, directory: PathBuf, verbose: bool) {
+pub fn cli_remove(matches: &ArgMatches, directory: PathBuf, _verbose: bool) {
     let pubkey: &String = matches.get_one("pubkey").unwrap();
     let domain = matches.get_one::<String>("domain");
 

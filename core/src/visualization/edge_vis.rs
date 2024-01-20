@@ -65,10 +65,10 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType, D: DisplayNode<N, E, Ty, I
         end: &Node<N, E, Ty, Ix, D>,
         ctx: &DrawContext,
     ) -> Vec<egui::Shape> {
-        let style = match self.selected {
-            true => ctx.ctx.style().visuals.widgets.active,
-            false => ctx.ctx.style().visuals.widgets.inactive,
-        };
+        // let style = match self.selected {
+        //     true => ctx.ctx.style().visuals.widgets.active,
+        //     false => ctx.ctx.style().visuals.widgets.inactive,
+        // };
         let color = Color32::LIGHT_GRAY; //style.fg_stroke.color;
 
         if start.id() == end.id() {
