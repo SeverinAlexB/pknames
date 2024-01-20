@@ -1,6 +1,6 @@
 use clap::ArgMatches;
 
-use crate::cli::commands::{lookup::cli_lookup, ls::cli_ls};
+use crate::commands::{lookup::cli_lookup, ls::cli_ls};
 use std::path::{Path, PathBuf};
 
 use super::commands::{add::cli_add, getinfo::cli_getinfo, publish::cli_publish, remove::cli_remove, resolve::cli_resolve};

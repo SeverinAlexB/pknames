@@ -218,7 +218,7 @@ impl TryFrom<ResourceRecord<'_>> for CsvRecord {
 mod tests {
     use pkarr::Keypair;
 
-    use crate::cli::commands::publisher::csv_records::CsvRecords;
+    use crate::commands::publisher::csv_records::CsvRecords;
 
     fn get_test_keypair() -> Keypair {
         // pk:cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso

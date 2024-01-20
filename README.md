@@ -33,6 +33,7 @@ Checkout the [example](./examples/simple/) for a first glance into the system.
 - [x] Graph visualization
 - [x] Graph pruning
 - [x] Transform cyclical graph to acyclical.
-- [ ] CLI.
-- [ ] ICANN DNS fallback
+- [ ] CLI
+- [ ] DNS server
+- [ ] Follow list sharing aka Datastores
 - [ ] Reseach gameability

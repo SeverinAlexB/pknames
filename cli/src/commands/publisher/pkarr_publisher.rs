@@ -52,7 +52,7 @@ impl PkarrPublisher {
 #[cfg(test)]
 mod tests {
     use pkarr::Keypair;
-    use crate::cli::commands::publisher::csv_records::CsvRecords;
+    use crate::commands::publisher::csv_records::CsvRecords;
     use super::PkarrPublisher;
 
     fn get_test_keypair() -> Keypair {
