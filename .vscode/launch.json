@@ -47,5 +47,25 @@
             ],
             "cwd": "${workspaceFolder}"
         },
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Dns Server",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=dns-server",
+                    "--package=dns-server"
+                ],
+                "filter": {
+                    "name": "dns-server",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+            ],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }

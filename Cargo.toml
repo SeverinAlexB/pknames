@@ -3,5 +3,6 @@
 members = [
     "core",
     "cli",
-    "hermes"
+    "hermes", 
+    "dns-server"
 ]

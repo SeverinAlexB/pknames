@@ -1,0 +1,14 @@
+[package]
+name = "dns-server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+any-dns = { path = "../../any-dns" }
+ctrlc = "3.4.2"
+simple-dns = "0.6.0"
+pknames_core = { path = "../core"}
+pkarr = "1.0.1"
+zbase32 = "0.1.2"
