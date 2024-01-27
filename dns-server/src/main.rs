@@ -2,27 +2,27 @@ use std::{error::Error, sync::mpsc::channel};
 use ctrlc;
 use any_dns::{CustomHandler, Builder};
 use pkarr::PkarrClient;
-use pkarr_resolver::resolve_pkarr_pubkey;
+use pkarr_resolver::PkarrResolver;
 mod pknames_resolver;
 mod pkarr_resolver;
+mod record_cache;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 struct MyHandler {
-    client: PkarrClient
+    pub pkarr: PkarrResolver
 }
 
 impl MyHandler {
     pub fn new() -> Self {
         Self {
-            client: PkarrClient::new()
+            pkarr: PkarrResolver::new(PkarrClient::new())
         }
     }
 }
 
 impl CustomHandler for MyHandler {
-    fn lookup(&self, query: &Vec<u8>) -> std::prelude::v1::Result<Vec<u8>, Box<dyn Error>> {
-        resolve_pkarr_pubkey(query, &self.client)
-        // Err("not imp".into())
+    fn lookup(&mut self, query: &Vec<u8>) -> std::prelude::v1::Result<Vec<u8>, Box<dyn Error>> {
+        self.pkarr.resolve(query)
     }
 }
 

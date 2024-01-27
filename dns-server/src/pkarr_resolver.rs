@@ -1,61 +1,103 @@
-use std::{error::Error, time::Instant};
+use std::{error::Error, sync::{Arc, Mutex}, time::Instant};
 
-use pkarr::{dns::Packet, PkarrClient, PublicKey};
+use pkarr::{
+    dns::{Packet, ResourceRecord},
+    PkarrClient, PublicKey, SignedPacket,
+};
 
-fn parse_pkarr_uri(uri: &str) -> Option<PublicKey> {
-    let decoded = zbase32::decode_full_bytes_str(uri);
-    if decoded.is_err() {
-        return None
-    };
-    let decoded = decoded.unwrap();
-    if decoded.len() != 32 {
-        return None;
-    };
-    let trying: Result<PublicKey, _> = uri.try_into();
-    trying.ok()
-}
+use crate::record_cache::PkarrPacketTtlCache;
 
 /**
- * Resolves a domain with pkarr.
+ * Pkarr resolver with cache.
  */
-pub fn resolve_pkarr_pubkey(query: &Vec<u8>, pkarr: &PkarrClient) -> std::prelude::v1::Result<Vec<u8>, Box<dyn Error>> {
-    let start = Instant::now();
-    let request = Packet::parse(query)?;
-
-    let question_opt = request.questions.first();
-    if question_opt.is_none() {
-        return Err("Missing question".into());
-    }
-    let question = question_opt.unwrap();
-    let labels = question.qname.get_labels();
-
-    let raw_pubkey = labels.last().unwrap().to_string();
-    let parsed_option = parse_pkarr_uri(&raw_pubkey);
-    if parsed_option.is_none() {
-        return Err("Invalid pkarr pubkey".into());
-    }
-    let pubkey = parsed_option.unwrap();
-
-    let packet_option = pkarr.resolve(pubkey);
-    if packet_option.is_none() {
-        return Err("No pkarr packet found for pubkey".into());
-    }
-    let signed_packet = packet_option.unwrap();
-
-    let matching_records = signed_packet
-    .resource_records(&question.qname.to_string())
-    .filter(|record| {
-        record.match_qclass(question.qclass) && record.match_qtype(question.qtype)
-    });
-    let mut reply = Packet::new_reply(request.id());
-    reply.questions.push(question.clone());
-    reply.answers = matching_records.map(|record| record.clone()).collect();
-
-    println!("Pkarr reply {:?} with {} ms", reply, start.elapsed().as_millis());
-    let reply_bytes: Vec<u8> = reply.build_bytes_vec()?;
-    Ok(reply_bytes)
+#[derive(Clone)]
+pub struct PkarrResolver {
+    client: PkarrClient,
+    cache: Arc<Mutex<PkarrPacketTtlCache>>,
 }
 
+impl PkarrResolver {
+    pub fn new(client: PkarrClient) -> Self {
+        Self {
+            client,
+            cache: Arc::new(Mutex::new(PkarrPacketTtlCache::new())),
+        }
+    }
+
+    fn parse_pkarr_uri(&self, uri: &str) -> Option<PublicKey> {
+        let decoded = zbase32::decode_full_bytes_str(uri);
+        if decoded.is_err() {
+            return None;
+        };
+        let decoded = decoded.unwrap();
+        if decoded.len() != 32 {
+            return None;
+        };
+        let trying: Result<PublicKey, _> = uri.try_into();
+        trying.ok()
+    }
+
+    fn resolve_pubkey_respect_cache(&mut self, pubkey: &PublicKey) -> Option<Vec<u8>> {
+        let mut cache = self.cache.lock().unwrap();
+        let cached_opt = cache.get(pubkey);
+        if cached_opt.is_some() {
+            let reply_bytes = cached_opt.unwrap();
+            return Some(reply_bytes)
+        };
+
+
+        let packet_option = self.client.resolve(pubkey.clone());
+        if packet_option.is_none() {
+            return None;
+        };
+        let reply_bytes = packet_option.unwrap().packet().build_bytes_vec().unwrap();
+        cache.add(pubkey.clone(), reply_bytes);
+        cache.get(pubkey)
+    }
+
+    /**
+     * Resolves a domain with pkarr.
+     */
+    pub fn resolve(
+        &mut self,
+        query: &Vec<u8>
+    ) -> std::prelude::v1::Result<Vec<u8>, Box<dyn Error>> {
+        let start = Instant::now();
+        let request = Packet::parse(query)?;
+
+        let question_opt = request.questions.first();
+        if question_opt.is_none() {
+            return Err("Missing question".into());
+        }
+        let question = question_opt.unwrap();
+        let labels = question.qname.get_labels();
+
+        let raw_pubkey = labels.last().unwrap().to_string();
+        let parsed_option = self.parse_pkarr_uri(&raw_pubkey);
+        if parsed_option.is_none() {
+            return Err("Invalid pkarr pubkey".into());
+        }
+        let pubkey = parsed_option.unwrap();
+
+        let packet_option = self.resolve_pubkey_respect_cache(&pubkey);
+        if packet_option.is_none() {
+            return Err("No pkarr packet found for pubkey".into());
+        }
+        let packet = packet_option.unwrap();
+        let packet = Packet::parse(&packet).unwrap();
+
+        let matching_records: Vec<ResourceRecord<'_>> = packet.answers.iter()
+            .filter(|record| record.match_qclass(question.qclass) && record.match_qtype(question.qtype) && record.name == question.qname)
+            .map(|record| record.clone())
+            .collect();
+
+        let mut reply = request.into_reply();
+        reply.answers = matching_records;
+        println!("Pkarr reply {:?} with {} ms", reply, start.elapsed().as_millis());
+        let reply_bytes: Vec<u8> = reply.build_bytes_vec()?;
+        Ok(reply_bytes)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -64,9 +106,9 @@ mod tests {
         Keypair, SignedPacket,
     };
     // use simple_dns::{Name, Question, Packet};
+    use super::*;
     use std::net::Ipv4Addr;
     use zbase32;
-    use super::*;
 
     fn get_test_keypair() -> Keypair {
         // pk:cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso
@@ -113,10 +155,17 @@ mod tests {
         let domain = format!("pknames.p2p.{}", keypair.to_z32());
         let name = Name::new(&domain).unwrap();
         let mut query = Packet::new_query(0);
-        let question = Question::new(name.clone(), pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A), pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN), true);
+        let question = Question::new(
+            name.clone(),
+            pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A),
+            pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN),
+            true,
+        );
         query.questions.push(question);
+        
         let client = PkarrClient::new();
-        let result = resolve_pkarr_pubkey(&query.build_bytes_vec().unwrap(), &client);
+        let mut resolver = PkarrResolver::new(client);
+        let result = resolver.resolve(&query.build_bytes_vec().unwrap());
         assert!(result.is_ok());
         let reply_bytes = result.unwrap();
         let reply = Packet::parse(&reply_bytes).unwrap();
@@ -135,10 +184,16 @@ mod tests {
         let domain = keypair.to_z32();
         let name = Name::new(&domain).unwrap();
         let mut query = Packet::new_query(0);
-        let question = Question::new(name.clone(), pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A), pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN), true);
+        let question = Question::new(
+            name.clone(),
+            pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A),
+            pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN),
+            true,
+        );
         query.questions.push(question);
         let client = PkarrClient::new();
-        let result = resolve_pkarr_pubkey(&query.build_bytes_vec().unwrap(), &client);
+        let mut resolver = PkarrResolver::new(client);
+        let result = resolver.resolve(&query.build_bytes_vec().unwrap());
         assert!(result.is_ok());
         let reply_bytes = result.unwrap();
         let reply = Packet::parse(&reply_bytes).unwrap();
@@ -154,10 +209,16 @@ mod tests {
         let domain = "invalid_pubkey";
         let name = Name::new(&domain).unwrap();
         let mut query = Packet::new_query(0);
-        let question = Question::new(name.clone(), pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A), pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN), true);
+        let question = Question::new(
+            name.clone(),
+            pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A),
+            pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN),
+            true,
+        );
         query.questions.push(question);
         let client = PkarrClient::new();
-        let result = resolve_pkarr_pubkey(&query.build_bytes_vec().unwrap(), &client);
+        let mut resolver = PkarrResolver::new(client);
+        let result = resolver.resolve(&query.build_bytes_vec().unwrap());
         assert!(result.is_err());
         // println!("{}", result.unwrap_err());
     }
@@ -176,5 +237,4 @@ mod tests {
         let trying: Result<PublicKey, _> = domain.try_into();
         assert!(trying.is_err());
     }
-
 }

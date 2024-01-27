@@ -12,3 +12,4 @@ simple-dns = "0.6.0"
 pknames_core = { path = "../core"}
 pkarr = "1.0.1"
 zbase32 = "0.1.2"
+ttl_cache = "0.5.1"
