@@ -46,8 +46,11 @@ fn wait_on_ctrl_c() {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+
     let cmd = clap::Command::new("pkdns")
         .about("A DNS server for pknames and pkarr domains.")
+        .version(VERSION)
         .arg(
             clap::Arg::new("forward")
                 .short('f')

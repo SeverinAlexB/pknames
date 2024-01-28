@@ -1,4 +1,4 @@
-use std::{error::Error, sync::{Arc, Mutex}, time::Instant};
+use std::{error::Error, sync::{Arc, Mutex}};
 
 use pkarr::{
     dns::{Packet, ResourceRecord},
