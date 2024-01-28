@@ -37,6 +37,10 @@ impl MainDirectory {
         MainDirectory::new(path_buf)
     }
 
+    pub fn exists(&self) -> bool {
+        self.path.exists()
+    }
+
     /**
      * Creates the directory if it does not exist. At least given parent folder of `path` must exist otherwise it will throw an error.
      */

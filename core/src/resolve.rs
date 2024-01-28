@@ -24,6 +24,11 @@ pub fn is_icann_tld(domain: &str) -> bool {
  */
 pub fn resolve_standalone(domain: &str, directory: &str) -> Result<WotPrediction, String> {
     let dir = MainDirectory::new_by_string(directory);
+
+    if !dir.exists() {
+        return Err("pknames not initialized.".into())
+    };
+
     dir.create_if_it_does_not_exist().unwrap();
 
     let lists = dir.static_lists_dir.read_valid_lists();

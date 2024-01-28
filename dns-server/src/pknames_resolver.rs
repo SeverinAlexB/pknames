@@ -1,263 +1,102 @@
-// use std::{
-//     any::Any,
-//     convert::{TryFrom, TryInto},
-//     net::{Ipv4Addr, Ipv6Addr},
-// };
+use pkarr::dns::{Name, Packet};
+use pknames_core::resolve::resolve_standalone;
+use crate::pkarr_resolver::PkarrResolver;
 
 
-// use pkarr::dns::rdata::RData;
-// use pkarr::{
-//     dns::{rdata::SOA, ResourceRecord},
-//     PkarrClient, PublicKey,
-// };
-// use pknames_core::resolve::resolve_standalone;
+#[derive(Clone)]
+pub struct PknamesResolver {
+    pkarr: PkarrResolver,
+    config_dir_path: String,
+}
 
-// // macros::rdata_enum! {
-// //     A, ✅
-// //     AAAA, ✅
-// //     NS<'a>, ✅
-// //     MD<'a>,
-// //     CNAME<'a>, ✅
-// //     MB<'a>,
-// //     MG<'a>,
-// //     MR<'a>,
-// //     PTR<'a>,
-// //     MF<'a>,
-// //     HINFO<'a>,
-// //     MINFO<'a>,
-// //     MX<'a>, ✅
-// //     TXT<'a>, ✅
-// //     SOA<'a>, ✅
-// //     WKS<'a>,
-// //     SRV<'a>, ✅
-// //     RP<'a>,
-// //     AFSDB<'a>,
-// //     ISDN<'a>,
-// //     RouteThrough<'a>,
-// //     NSAP,
-// //     NSAP_PTR<'a>,
-// //     LOC,
-// //     OPT<'a>,
-// //     CAA<'a>,
-// // }
+impl PknamesResolver {
+    pub fn new(max_cache_ttl: u64, config_dir_path: &str) -> Self {
+        PknamesResolver {
+            pkarr: PkarrResolver::new(max_cache_ttl),
+            config_dir_path: config_dir_path.to_string()
+        }
+    }
 
-// // impl<'a> TryFrom<ResourceRecord<'a>> for DnsRecord {
-// //     type Error = String;
-// //     fn try_from(value: ResourceRecord<'a>) -> Result<Self, Self::Error> {
-// //         let domain = value.name.to_string();
-// //         let ttl = TransientTtl(value.ttl);
-// //         match value.rdata {
-// //             RData::A(addr) => {
-// //                 let ip = Ipv4Addr::from(addr.address);
-// //                 Ok(DnsRecord::A { domain, ttl, addr: ip })
-// //             }
-// //             RData::CNAME(val) => {
-// //                 let host = val.0.to_string();
-// //                 Ok(DnsRecord::CNAME { domain, ttl, host })
-// //             }
-// //             RData::TXT(val) => {
-// //                 let data = val.try_into().expect("Should be valid txt string");
-// //                 Ok(DnsRecord::TXT { domain, ttl, data })
-// //             }
-// //             RData::AAAA(addr) => {
-// //                 let ip = Ipv6Addr::from(addr.address);
-// //                 Ok(DnsRecord::AAAA { domain, ttl, addr: ip })
-// //             }
-// //             RData::NS(ns) => {
-// //                 let host = ns.to_string();
-// //                 Ok(DnsRecord::NS { domain, host, ttl })
-// //             }
-// //             RData::SOA(soa) => Ok(DnsRecord::SOA {
-// //                 domain,
-// //                 m_name: soa.mname.to_string(),
-// //                 r_name: soa.rname.to_string(),
-// //                 serial: soa.serial,
-// //                 refresh: soa.refresh as u32,
-// //                 retry: soa.retry as u32,
-// //                 expire: soa.expire as u32,
-// //                 minimum: soa.minimum,
-// //                 ttl,
-// //             }),
-// //             RData::SRV(srv) => Ok(DnsRecord::SRV {
-// //                 domain,
-// //                 priority: srv.priority,
-// //                 weight: srv.weight,
-// //                 port: srv.port,
-// //                 host: srv.target.to_string(),
-// //                 ttl,
-// //             }),
-// //             RData::MX(mx) => Ok(DnsRecord::MX {
-// //                 domain,
-// //                 ttl,
-// //                 priority: mx.preference,
-// //                 host: mx.exchange.to_string(),
-// //             }),
-// //             _ => Err("DNS record type is not implemented.".to_string()),
-// //         }
-// //     }
-// // }
+    /**
+     * Resolve a regular pknames domain into a pkarr domain.
+     * Example: `pknames.p2p` -> `pknames.p2p.7fmjpcuuzf54hw18bsgi3zihzyh4awseeuq5tmojefaezjbd64cy`.
+     */
+    fn predict_pknames_domain(&self, domain: &str) -> Result<String, Box<dyn std::error::Error>> {
+        let result = resolve_standalone(&domain, &self.config_dir_path);
+        if result.is_err() {
+            return Err("Neither pkarr nor pknames domain.".into());
+        };
 
-// fn parse_pkarr_uri(uri: &str) -> Option<PublicKey> {
-//     let trying: Result<PublicKey, _> = uri.try_into();
-//     trying.ok()
-// }
+        let predictions = result.unwrap();
+        let best_class = predictions.get_best_class().expect("Class should be available.");
 
-// /**
-//  * Resolves a domain with pkarr.
-//  */
-// fn resolve_pkarr_pubkey(qname: &str, pubkey: PublicKey, qtype: QueryType) -> Option<DnsPacket> {
-//     let pkarr = PkarrClient::new();
-//     let signed_packet = pkarr.resolve(pubkey.clone())?;
-//     let records: Vec<&ResourceRecord> = signed_packet.resource_records(qname).collect();
-//     let hermes_records: Vec<DnsRecord> = records
-//         .into_iter()
-//         .filter_map(|r| {
-//             let record = r.clone();
-//             let hermes_record: Result<DnsRecord, _> = record.try_into();
-//             if hermes_record.is_err() {
-//                 println!(
-//                     "Warn: Failed to convert pkarr record - {}",
-//                     hermes_record.clone().unwrap_err()
-//                 )
-//             };
-//             hermes_record.ok()
-//         })
-//         .filter(|record| record.get_querytype() == qtype)
-//         .collect();
-//     let hermes_records: Vec<DnsRecord> = hermes_records.into_iter().map(|r| {
-//         match r {
-//             DnsRecord::A { addr, ttl, .. } => {
-//                 let domain = qname.to_string();
-//                 DnsRecord::A { domain, addr, ttl }
-//             },
-//             DnsRecord::AAAA {  addr, ttl, .. } => {
-//                 let domain = qname.to_string();
-//                 DnsRecord::AAAA { domain, addr, ttl }
-//             },
-//             record => record
-//         }
-//     }).collect();
+        let best_pubkey = best_class.pubkey.clone();
+        let best_pubkey = best_pubkey.replace("pk:", ""); // Just to be sure
 
-//     let mut packet = DnsPacket::new();
-//     packet.answers = hermes_records;
+        let full_domain = format!("{}.{}", domain, best_pubkey);
+        Ok(full_domain)
+    }
 
-//     packet.header.rescode = ResultCode::NOERROR;
-//     Some(packet)
-// }
 
-// /**
-//  * Resolves pknames and pkarr public keys.
-//  */
-// pub fn resolve_pknames_or_pkarr_pubkey(qname: &str, qtype: QueryType) -> Result<DnsPacket, ResolveError> {
-//     let pubkey = parse_pkarr_uri(qname);
-//     if pubkey.is_some() {
-//         let pubkey = pubkey.unwrap();
-//         let result = resolve_pkarr_pubkey(&pubkey.to_z32(), pubkey, qtype);
-//         if result.is_none() {
-//             return Err(ResolveError::NoServerFound);
-//         } else {
-//             return Ok(result.unwrap());
-//         }
-//     }
+    pub fn resolve(&mut self, query: &Vec<u8>) -> std::prelude::v1::Result<Vec<u8>, Box<dyn std::error::Error>> {
+        let original_query = Packet::parse(query)?;
 
-//     let result = resolve_standalone(qname, "~/.pknames");
-//     if let Err(e) = result {
-//         return Err(ResolveError::NoServerFound);
-//     };
+        let pkarr_result = self.pkarr.resolve(&query.clone());
+        if pkarr_result.is_ok() {
+            return pkarr_result; // It was a pkarr hostname
+        }
 
-//     let prediction = result.unwrap();
-//     for class in prediction.classes.iter() {
-//         println!("{} {:.2}%", class.pubkey, class.probability * 100.0);
-//     }
+        let question = original_query.questions.first().unwrap();
+        let domain = question.qname.to_string();
+        let pkarr_domain = self.predict_pknames_domain(&domain)?;
 
-//     let best_class = prediction.get_best_class().expect("Class should be available.");
-//     let pubkey = parse_pkarr_uri(&best_class.pubkey).expect("Should be pkarr pubkey");
-//     let result = resolve_pkarr_pubkey(qname, pubkey, qtype);
-//     if result.is_none() {
-//         return Err(ResolveError::NoServerFound);
-//     } else {
-//         return Ok(result.unwrap());
-//     }
-// }
+        let qname = Name::new(&pkarr_domain).unwrap();
+        let mut pkarr_query = original_query.clone();
+        pkarr_query.questions[0].qname = qname;
+        let pkarr_query = pkarr_query.build_bytes_vec().unwrap();
+        let pkarr_reply = self.pkarr.resolve(&pkarr_query)?;
+        let pkarr_reply = Packet::parse(&pkarr_reply).unwrap();
 
-// #[cfg(test)]
-// mod tests {
-//     use pkarr::{
-//         dns::{Name, Packet, ResourceRecord},
-//         Keypair, SignedPacket,
-//     };
-//     use std::net::Ipv4Addr;
+        let mut reply = original_query.clone().into_reply();
+        for answer in pkarr_reply.answers.iter() {
+            let mut answer = answer.clone();
+            answer.name = question.qname.clone();
+            reply.answers.push(answer);
+        };
+        Ok(reply.build_bytes_vec().unwrap())
+    }
+}
 
-//     use super::*;
 
-//     fn get_test_keypair() -> Keypair {
-//         // pk:cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso
-//         let secret = "6kfe1u5jyqxg644eqfgk1cp4w9yjzwq51rn11ftysuo6xkpc64by";
-//         let seed = zbase32::decode_full_bytes_str(secret).unwrap();
-//         let slice: &[u8; 32] = &seed[0..32].try_into().unwrap();
-//         let keypair = Keypair::from_secret_key(slice);
-//         keypair
-//     }
 
-//     fn publish_record() {
-//         let keypair = get_test_keypair();
-//         // let uri = keypair.to_uri_string();
-//         // println!("Publish packet with pubkey {}", uri);
+#[cfg(test)]
+mod tests {
+    use pkarr::dns::{Name, Packet, Question};
 
-//         let mut packet = Packet::new_reply(0);
-//         let ip: Ipv4Addr = "93.184.216.34".parse().unwrap();
-//         let record = ResourceRecord::new(
-//             Name::new("pknames.p2p").unwrap(),
-//             pkarr::dns::CLASS::IN,
-//             100,
-//             pkarr::dns::rdata::RData::A(ip.try_into().unwrap()),
-//         );
-//         packet.answers.push(record);
-//         let record = ResourceRecord::new(
-//             Name::new(".").unwrap(),
-//             pkarr::dns::CLASS::IN,
-//             100,
-//             pkarr::dns::rdata::RData::A(ip.try_into().unwrap()),
-//         );
-//         packet.answers.push(record);
-//         let signed_packet = SignedPacket::from_packet(&keypair, &packet).unwrap();
+    use super::PknamesResolver;
 
-//         let client = PkarrClient::new();
-//         let result = client.publish(&signed_packet);
-//         result.expect("Should have published.");
-//     }
+    #[test]
+    fn query_pubkey() {
+        let mut pknames = PknamesResolver::new(1, "~/.pknames");
 
-//     #[test]
-//     fn query_pubkey() {
-//         publish_record();
+        let mut query = Packet::new_query(0);
+        let name = Name::new("pknames.p2p").unwrap();
+        let question = Question::new(name, pkarr::dns::QTYPE::TYPE(pkarr::dns::TYPE::A), pkarr::dns::QCLASS::CLASS(pkarr::dns::CLASS::IN), false);
+        query.questions.push(question);
+        let query_bytes = query.build_bytes_vec().unwrap();
 
-//         let keypair = get_test_keypair();
-//         let result = resolve_pkarr_pubkey(&keypair.to_z32(), keypair.public_key(), QueryType::A);
-//         let packet = result.unwrap();
-//         assert_eq!(packet.answers.len(), 1);
-//         let answer = packet.answers.get(0).unwrap();
-//         assert_eq!(answer.get_querytype(), QueryType::A);
-//         assert_eq!(answer.get_ttl(), 100);
-//         assert_eq!(
-//             answer.get_domain().unwrap(),
-//             "cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso"
-//         );
-//     }
+        let result  = pknames.resolve(&query_bytes);
+        if result.is_err() {
+            eprintln!("{:?}", result.unwrap_err());
+            assert!(false);
+            return;
+        }
+        assert!(result.is_ok());
 
-//     #[test]
-//     fn query_domain() {
-//         publish_record();
+        let reply = result.unwrap();
+        let reply = Packet::parse(&reply).unwrap();
+        println!("{:?}", reply);
 
-//         let keypair = get_test_keypair();
-//         let result = resolve_pkarr_pubkey("pknames.p2p", keypair.public_key(), QueryType::A);
-//         let packet = result.unwrap();
-//         assert_eq!(packet.answers.len(), 1);
-//         let answer = packet.answers.get(0).unwrap();
-//         assert_eq!(answer.get_querytype(), QueryType::A);
-//         assert_eq!(answer.get_ttl(), 100);
-//         assert_eq!(
-//             answer.get_domain().unwrap(),
-//             "pknames.p2p.cb7xxx6wtqr5d6yqudkt47drqswxk57dzy3h7qj3udym5puy9cso"
-//         );
-//     }
-// }
+    }
+
+}

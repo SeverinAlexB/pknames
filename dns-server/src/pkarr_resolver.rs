@@ -2,10 +2,10 @@ use std::{error::Error, sync::{Arc, Mutex}, time::Instant};
 
 use pkarr::{
     dns::{Packet, ResourceRecord},
-    PkarrClient, PublicKey, SignedPacket,
+    PkarrClient, PublicKey,
 };
 
-use crate::record_cache::PkarrPacketTtlCache;
+use crate::pkarr_cache::PkarrPacketTtlCache;
 
 /**
  * Pkarr resolver with cache.
@@ -17,14 +17,14 @@ pub struct PkarrResolver {
 }
 
 impl PkarrResolver {
-    pub fn new(client: PkarrClient) -> Self {
+    pub fn new(max_cache_ttl: u64) -> Self {
         Self {
-            client,
-            cache: Arc::new(Mutex::new(PkarrPacketTtlCache::new())),
+            client: PkarrClient::new(),
+            cache: Arc::new(Mutex::new(PkarrPacketTtlCache::new(max_cache_ttl))),
         }
     }
 
-    fn parse_pkarr_uri(&self, uri: &str) -> Option<PublicKey> {
+    pub fn parse_pkarr_uri(uri: &str) -> Option<PublicKey> {
         let decoded = zbase32::decode_full_bytes_str(uri);
         if decoded.is_err() {
             return None;
@@ -62,7 +62,6 @@ impl PkarrResolver {
         &mut self,
         query: &Vec<u8>
     ) -> std::prelude::v1::Result<Vec<u8>, Box<dyn Error>> {
-        let start = Instant::now();
         let request = Packet::parse(query)?;
 
         let question_opt = request.questions.first();
@@ -73,7 +72,7 @@ impl PkarrResolver {
         let labels = question.qname.get_labels();
 
         let raw_pubkey = labels.last().unwrap().to_string();
-        let parsed_option = self.parse_pkarr_uri(&raw_pubkey);
+        let parsed_option = Self::parse_pkarr_uri(&raw_pubkey);
         if parsed_option.is_none() {
             return Err("Invalid pkarr pubkey".into());
         }
@@ -93,7 +92,7 @@ impl PkarrResolver {
 
         let mut reply = request.into_reply();
         reply.answers = matching_records;
-        println!("Pkarr reply {:?} with {} ms", reply, start.elapsed().as_millis());
+        // println!("Pkarr reply {:?} with {} ms", reply, start.elapsed().as_millis());
         let reply_bytes: Vec<u8> = reply.build_bytes_vec()?;
         Ok(reply_bytes)
     }
@@ -163,8 +162,7 @@ mod tests {
         );
         query.questions.push(question);
         
-        let client = PkarrClient::new();
-        let mut resolver = PkarrResolver::new(client);
+        let mut resolver = PkarrResolver::new(0);
         let result = resolver.resolve(&query.build_bytes_vec().unwrap());
         assert!(result.is_ok());
         let reply_bytes = result.unwrap();
@@ -191,8 +189,7 @@ mod tests {
             true,
         );
         query.questions.push(question);
-        let client = PkarrClient::new();
-        let mut resolver = PkarrResolver::new(client);
+        let mut resolver = PkarrResolver::new(0);
         let result = resolver.resolve(&query.build_bytes_vec().unwrap());
         assert!(result.is_ok());
         let reply_bytes = result.unwrap();
@@ -216,8 +213,7 @@ mod tests {
             true,
         );
         query.questions.push(question);
-        let client = PkarrClient::new();
-        let mut resolver = PkarrResolver::new(client);
+        let mut resolver = PkarrResolver::new(0);
         let result = resolver.resolve(&query.build_bytes_vec().unwrap());
         assert!(result.is_err());
         // println!("{}", result.unwrap_err());
