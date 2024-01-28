@@ -2,7 +2,7 @@ use any_dns::{Builder, CustomHandler};
 use ctrlc;
 use pkarr::dns::Packet;
 use pknames_resolver::PknamesResolver;
-use std::{error::Error, net::SocketAddr, num::ParseIntError, sync::mpsc::channel, time::Instant};
+use std::{error::Error, net::SocketAddr, sync::mpsc::channel, time::Instant};
 
 mod pkarr_cache;
 mod pkarr_resolver;

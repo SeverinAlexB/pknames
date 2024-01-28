@@ -3,5 +3,5 @@
 members = [
     "core",
     "cli",
-    "dns-server"
+    "pkdns"
 ]

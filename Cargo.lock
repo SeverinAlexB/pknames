@@ -1248,20 +1248,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dns-server"
-version = "0.1.0"
-dependencies = [
- "any-dns",
- "clap",
- "ctrlc",
- "pkarr",
- "pknames_core",
- "simple-dns 0.6.0",
- "ttl_cache",
- "zbase32",
-]
-
-[[package]]
 name = "downcast-rs"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2597,6 +2583,20 @@ checksum = "f950b2377845cebe5cf8b5165cb3cc1a5e0fa5cfa3e1f7f55707d8fd82e0a7b7"
 dependencies = [
  "der",
  "spki",
+]
+
+[[package]]
+name = "pkdns"
+version = "0.1.0"
+dependencies = [
+ "any-dns",
+ "clap",
+ "ctrlc",
+ "pkarr",
+ "pknames_core",
+ "simple-dns 0.6.0",
+ "ttl_cache",
+ "zbase32",
 ]
 
 [[package]]
