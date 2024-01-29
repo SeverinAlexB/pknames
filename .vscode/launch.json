@@ -55,11 +55,11 @@
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=dns-server",
-                    "--package=dns-server"
+                    "--bin=pkdns",
+                    "--package=pkdns"
                 ],
                 "filter": {
-                    "name": "dns-server",
+                    "name": "pkdns",
                     "kind": "bin"
                 }
             },
