@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
 use clap::ArgMatches;
-use pknames_core::{prediction::{predictor::WotPredictor, graph::WotGraph},  visualization::visualization::visualize_graph, pruning::prune::prune_graph, config_directory::dirs::main_directory::MainDirectory};
+use pknames_core::{prediction::{predictor::WotPredictor, graph::WotGraph}, pruning::prune::prune_graph, config_directory::dirs::main_directory::MainDirectory};
+
+use crate::visualization::visualization::visualize_graph;
 
 
 

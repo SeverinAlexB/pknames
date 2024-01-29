@@ -16,11 +16,6 @@ categories = ["network-programming"]
 [dependencies]
 assert_approx_eq = "1.1.0"
 burn = { version = "0.10.0", features = ["ndarray", "train-minimal", "autodiff"] }
-eframe = "0.24.1"
-egui = "0.24.1"
-egui_graphs = { version = "0.17.0", features = ["events"] }
-fdg-sim = "0.9.1"
-petgraph = "0.6.4"
 pkarr = "1.0.1"
 rand = "0.8.5"
 serde = "1.0.192"
