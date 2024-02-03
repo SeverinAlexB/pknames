@@ -52,6 +52,7 @@ impl PkarrPublisher {
 #[cfg(test)]
 mod tests {
     use pkarr::Keypair;
+    use simple_dns::Packet;
     use crate::commands::pkarr::pkarr_records::PkarrRecords;
     use super::PkarrPublisher;
 

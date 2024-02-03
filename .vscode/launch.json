@@ -21,49 +21,8 @@
             },
             "args": [
                 "pkarr",
-                "resolve"
-                // "/Users/severinbuhler/git/pknames/pknames/examples/publish/records.conf"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Hermes",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=hermes",
-                    "--package=pknames_hermes"
-                ],
-                "filter": {
-                    "name": "hermes",
-                    "kind": "bin"
-                }
-            },
-            "args": [
-                "-f",
-                "192.168.1.1"
-            ],
-            "cwd": "${workspaceFolder}"
-        },
-
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Dns Server",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=pkdns",
-                    "--package=pkdns"
-                ],
-                "filter": {
-                    "name": "pkdns",
-                    "kind": "bin"
-                }
-            },
-            "args": [
+                "resolve",
+                "7fmjpcuuzf54hw18bsgi3zihzyh4awseeuq5tmojefaezjbd64cy"
             ],
             "cwd": "${workspaceFolder}"
         },
