@@ -11,7 +11,10 @@ use super::commands::{
  * Main cli entry function.
  */
 pub fn run_cli() {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+
     let cmd = clap::Command::new("pknames")
+        .version(VERSION)
         .about("A web of trust system to resolve domain names to pkarr public keys.")
         .arg(
             clap::Arg::new("directory")
