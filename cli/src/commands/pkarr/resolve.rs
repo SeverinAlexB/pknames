@@ -9,7 +9,7 @@ use super::pkarr_records::{PkarrRecords, PkarrRecord};
 fn resolve_pkarr(uri: &str) -> (PkarrRecords, DateTime<Utc>)  {
     let client = PkarrClient::new();
     let pubkey: PublicKey = uri.try_into().expect("Should be valid pkarr public key.");
-    let res = client.resolve_most_recent(pubkey);
+    let res = client.resolve(pubkey);
     if res.is_none() {
         return (PkarrRecords{records: vec![]}, DateTime::<Utc>::MIN_UTC);
     };
