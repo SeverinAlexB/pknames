@@ -210,18 +210,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "any-dns"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6edefda8000f200c72cfd369d8a46fb56523f25e6fa7ee713d5c9e6c08044dc0"
-dependencies = [
- "ctrlc",
- "dyn-clone",
- "simple-dns 0.6.0",
- "thiserror",
-]
-
-[[package]]
 name = "arboard"
 version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1254,12 +1242,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
-name = "dyn-clone"
-version = "1.0.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "545b22097d44f8a9581187cdf93de7a71e4722bf51200cfaba810865b49a495d"
-
-[[package]]
 name = "ecolor"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2037,12 +2019,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "linked-hash-map"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
-
-[[package]]
 name = "linux-raw-sys"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2548,16 +2524,16 @@ dependencies = [
 
 [[package]]
 name = "pkarr"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52fb91b6f9777a6cd25ea754efcdba5c90d9decf151290439816b3d2827063ff"
+checksum = "6c82ea9a4ee1768cd00ff53dd228504adae3a73528e9142be016d279ec748aea"
 dependencies = [
  "bytes",
  "ed25519-dalek",
  "mainline",
  "rand",
  "self_cell",
- "simple-dns 0.5.7",
+ "simple-dns",
  "thiserror",
  "url",
  "z32",
@@ -2574,20 +2550,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pkdns"
-version = "0.1.0"
-dependencies = [
- "any-dns",
- "clap",
- "ctrlc",
- "pkarr",
- "pknames_core",
- "simple-dns 0.6.0",
- "ttl_cache",
- "zbase32",
-]
-
-[[package]]
 name = "pkg-config"
 version = "0.3.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2595,7 +2557,7 @@ checksum = "2900ede94e305130c13ddd391e0ab7cbaeb783945ae07a279c268cb05109c6cb"
 
 [[package]]
 name = "pknames_core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "assert_approx_eq",
  "burn",
@@ -2609,7 +2571,7 @@ dependencies = [
 
 [[package]]
 name = "pknamescli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "assert_approx_eq",
  "chrono",
@@ -2626,7 +2588,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shellexpand",
- "simple-dns 0.6.0",
+ "simple-dns",
  "zbase32",
 ]
 
@@ -3114,15 +3076,6 @@ checksum = "d66dc143e6b11c1eddc06d5c423cfc97062865baf299914ab64caa38182078fe"
 
 [[package]]
 name = "simple-dns"
-version = "0.5.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cae9a3fcdadafb6d97f4c0e007e4247b114ee0f119f650c3cbf3a8b3a1479694"
-dependencies = [
- "bitflags 2.4.1",
-]
-
-[[package]]
-name = "simple-dns"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28d0d0b272355cdfd1308ddd5c9f18cd7a62efe866de502767ff61a8e3ec2343"
@@ -3495,15 +3448,6 @@ name = "ttf-parser"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17f77d76d837a7830fe1d4f12b7b4ba4192c1888001c7164257e4bc6d21d96b4"
-
-[[package]]
-name = "ttl_cache"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4189890526f0168710b6ee65ceaedf1460c48a14318ceec933cb26baa492096a"
-dependencies = [
- "linked-hash-map",
-]
 
 [[package]]
 name = "typenum"

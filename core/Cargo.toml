@@ -1,6 +1,6 @@
 [package]
 name = "pknames_core"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 license-file = "LICENSE"
@@ -16,7 +16,7 @@ categories = ["network-programming"]
 [dependencies]
 assert_approx_eq = "1.1.0"
 burn = { version = "0.10.0", features = ["ndarray", "train-minimal", "autodiff"] }
-pkarr = "1.0.1"
+pkarr = "1.0.2"
 rand = "0.8.5"
 serde = "1.0.192"
 serde_json = "1.0.108"
