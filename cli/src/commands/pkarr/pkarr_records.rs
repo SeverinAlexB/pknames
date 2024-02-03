@@ -7,6 +7,7 @@ use pkarr::{dns::{ResourceRecord, Name, rdata::{RData, CNAME, TXT}, Packet}, Sig
  * Single Pkarr Record.
  * Todo: Validation and extend possible record types.
  */
+#[derive(Clone, Debug)]
 pub struct PkarrRecord {
     pub typ: String,
     pub domain: String,
@@ -130,6 +131,7 @@ impl PkarrRecords {
 
     pub fn to_signed_packet(&self, keypair: &Keypair) -> Result<SignedPacket, Box<dyn Error>> {
         // Check for record validity
+        dbg!(self.records.clone());
         for record in self.records.iter() {
             record.to_resource_record()?;
         };
@@ -244,6 +246,22 @@ mod tests {
         assert_eq!(ele.domain, "test");
         assert_eq!(ele.data, "helloworld");
         assert_eq!(ele.ttl, DEFAULT_TTL);
+    }
+
+    #[test]
+    fn parse_spacefile() {
+        let csv = "
+        # Space separated pkarr records file.
+# 4 columns. TTL is optional.
+# <- Comment
+
+# Type  Domain          Data           TTL
+A       @               37.27.13.182
+A       pknames.p2p     37.27.13.182
+CNAME   www.pknames.p2p    pknames.p2p.7fmjpcuuzf54hw18bsgi3zihzyh4awseeuq5tmojefaezjbd64cy
+        ";
+        let parsed = PkarrRecords::from_conf(csv).unwrap();
+        assert_eq!(parsed.records.len(), 3);
     }
 
 
