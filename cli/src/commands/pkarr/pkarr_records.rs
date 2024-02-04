@@ -57,6 +57,10 @@ impl PkarrRecord {
                 txt.add_string(&self.data)?;
                 RData::TXT(txt)
             },
+            "NS" => {
+                let name: Name<'a> = Name::try_from(self.data.as_str())?;
+                RData::NS(simple_dns::rdata::NS(name))
+            },
             _ => {
                 todo!("Unsupported record type")
             }

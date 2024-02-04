@@ -2524,9 +2524,9 @@ dependencies = [
 
 [[package]]
 name = "pkarr"
-version = "1.0.2"
+version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c82ea9a4ee1768cd00ff53dd228504adae3a73528e9142be016d279ec748aea"
+checksum = "817373b3240d80ad1c73721c038cea6d9297f880445920ee132698a5f8fa6c69"
 dependencies = [
  "bytes",
  "ed25519-dalek",
@@ -2571,7 +2571,7 @@ dependencies = [
 
 [[package]]
 name = "pknamescli"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "assert_approx_eq",
  "chrono",
@@ -4119,9 +4119,9 @@ checksum = "0fcb9cbac069e033553e8bb871be2fbdffcab578eb25bd0f7c508cedc6dcd75a"
 
 [[package]]
 name = "z32"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4e62ec361f7259399a83b7983270dd0249067d94600c50475e65dca64e24083"
+checksum = "a5c2c4e1757d25c3bfa9e137b15e458bc028bf569c2c22e59ecf9f62545d45fd"
 
 [[package]]
 name = "zbase32"
