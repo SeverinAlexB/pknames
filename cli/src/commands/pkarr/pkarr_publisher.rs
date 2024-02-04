@@ -69,14 +69,17 @@ mod tests {
     fn run_once() {
         let csv = "
         # Type, Domain, Data, TTL
-        A, pknames.p2p, 127.0.0.1, 10
-        TXT, test, helloworld,
-        TXT, test, helloworld, a
+        A  pknames.p2p  127.0.0.1 10
+        TXT test helloworld
+        TXT test helloworld a
+        NS      sub             ns.7fmjpcuuzf54hw18bsgi3zihzyh4awseeuq5tmojefaezjbd64cy
+        A       ns              95.217.214.181
         ";
 
         let keypair = get_test_keypair();
         let parsed = PkarrRecords::from_conf(csv).unwrap();
         let packet = parsed.to_signed_packet(&keypair).unwrap();
+        dbg!(&packet);
         let publisher = PkarrPublisher::new(packet);
         publisher.run_once();
     }

@@ -187,6 +187,15 @@ impl TryFrom<ResourceRecord<'_>> for PkarrRecord {
                     typ: "CNAME".to_string(),
                     data: host
                 })
+            },
+            RData::NS(val) => {
+                let host = val.0.to_string();
+                Ok(PkarrRecord {
+                    domain,
+                    ttl,
+                    typ: "NS".to_string(),
+                    data: host
+                })
             }
             _ => {
                 Err("Not implemented record typ".to_string())
